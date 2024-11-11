@@ -24,7 +24,7 @@ getPODNewMexico <- function(aoi, dist = 0){
                 filter_geom,
                 "&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects")
   
-  ut_wr <- st_read(url) %>%
+  nm_wr <- st_read(url) %>%
     sf::st_transform(st_crs(aoi))
   
   # join sf object and table attributes and filter to park boundary region of interest
@@ -32,11 +32,10 @@ getPODNewMexico <- function(aoi, dist = 0){
     # subset to only PODs within aoi + buffer
     sf::st_intersection(., aoi_buffer) %>%
     # identify those found within aoi OR just within the buffer
-    sf::st_join(., aoi %>% dplyr::mutate(within_col = "WITHIN") %>% dplyr::select(within_col), left = TRUE) %>%
+    sf::st_join(., aoi %>% dplyr::mutate(within_aoi = "Within AOI") %>% dplyr::select(within_aoi), left = TRUE) %>%
     # identify PODs owned by park. This doesn't always work. 
     dplyr::mutate(park_right = ifelse(grepl("National Park", own_lname, ignore.case = T), "Park", "Non-park"),
-                  within_aoi = ifelse(!is.na(within_col), "Within AOI", "Within buffer")) %>%
-    dplyr::select(-within_col)
+                  within_aoi = ifelse(!is.na(within_aoi), "Within AOI", "Within buffer"))
   
   return(nearby_wr)
   
