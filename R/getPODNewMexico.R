@@ -38,5 +38,5 @@ getPODNewMexico <- function(aoi, dist = 0){
                   within_aoi = ifelse(!is.na(within_aoi), "Within AOI", "Within buffer"))
   
   return(nearby_wr)
-  
+ 
 }
