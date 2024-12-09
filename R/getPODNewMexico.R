@@ -11,6 +11,8 @@ getPODNewMexico <- function(aoi, dist = 0){
   aoi_buffer <- aoi %>% 
     sf::st_buffer(dist = dist)
   
+  if(st_crs(aoi_buffer)$epsg != 4326){
+  
   ## convert park boundary bbox to esri geom object
   filter_geom <- aoi_buffer %>%
     sf::st_transform(4326) %>%
@@ -18,14 +20,33 @@ getPODNewMexico <- function(aoi, dist = 0){
     sf::st_as_sfc(filter_geom) %>% 
     .[[1]] %>% 
     arcgisutils::as_esri_geometry()
+ 
+   } else {
+    
+     ## convert park boundary bbox to esri geom object
+     filter_geom <- aoi_buffer %>%
+       sf::st_bbox() %>% 
+       sf::st_as_sfc(filter_geom) %>% 
+       .[[1]] %>% 
+       arcgisutils::as_esri_geometry()
+    
+  }
   
   ## create the rest API
   url <- paste0("https://services2.arcgis.com/qXZbWTdPDbTjl7Dy/arcgis/rest/services/OSE_PODs/FeatureServer/0/query?returnGeometry=true&where=1=1&outFields=*&f=geojson&geometry=",
                 filter_geom,
                 "&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects")
   
+  if(st_crs(aoi_buffer)$epsg != 4326){
+  
   nm_wr <- st_read(url) %>%
     sf::st_transform(st_crs(aoi))
+  
+  } else {
+    
+    nm_wr <- st_read(url) 
+    
+  }
   
   # join sf object and table attributes and filter to park boundary region of interest
   nearby_wr <- nm_wr %>%  
@@ -35,7 +56,8 @@ getPODNewMexico <- function(aoi, dist = 0){
     sf::st_join(., aoi %>% dplyr::mutate(within_aoi = "Within AOI") %>% dplyr::select(within_aoi), left = TRUE) %>%
     # identify PODs owned by park. This doesn't always work. 
     dplyr::mutate(park_right = ifelse(grepl("National Park", own_lname, ignore.case = T), "Park", "Non-park"),
-                  within_aoi = ifelse(!is.na(within_aoi), "Within AOI", "Within buffer"))
+                  within_aoi = ifelse(!is.na(within_aoi), "Within AOI", "Within buffer")) %>%
+    sf::st_make_valid()
   
   return(nearby_wr)
  
