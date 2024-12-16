@@ -94,7 +94,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     num_pts_start_loop <- length(new_aoi_points)
     
     # Print for status update (can remove)
-    print(paste0("Points left: ", num_pts_start_loop))
+    #print(paste0("Points left: ", num_pts_start_loop))
     
     # Error check -- if pt_index is greater than # pts, reset
     if (pt_num > num_pts_start_loop) {
