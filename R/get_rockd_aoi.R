@@ -22,6 +22,8 @@
 
 get_rockd_aoi <- function(aoi, crop = TRUE) {
   
+  sf::sf_use_s2(FALSE)
+  
   #aoi <- park_boundary
   
   #' Function to convert aoi to gridded points
@@ -48,7 +50,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     poly_to_points(cellsize = .005)
   
   # Pull geology for first point
-  geo_1 <- get_rockd(aoi_points[1,]) 
+  geo_1 <- get_rockd(aoi_points[1]) 
   
   # Transform aoi_points to crs of geo_1
   aoi_points <- aoi_points %>%
@@ -73,7 +75,8 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   
   # Filter geo_1 to only include geologic layers from that source
   geo_1 <- geo_1 %>%
-    dplyr::filter(source_id == source)
+    dplyr::filter(source_id == source) %>% 
+    st_make_valid()
   
   # Select all points that don't overlap with geo_1 and subsequently pull
   # geology for those points, repeating this selection process
@@ -102,15 +105,17 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     }
     
     # Get geology for pt_num
-    geo_2 <- get_rockd(new_aoi_points[pt_num,]) %>%
-      dplyr::filter(source_id == source)
+    geo_2 <- get_rockd(new_aoi_points[pt_num]) %>%
+      dplyr::filter(source_id == source) %>% 
+      st_make_valid()
     
     # Remove points that intersect the new geologic extent
-    new_aoi_points <- new_aoi_points %>% 
+    new_aoi_points <- new_aoi_points %>%
+      st_make_valid() %>% 
       st_intersects(geo_2) %>% 
       lengths() %>% 
       `==`(0) %>% 
-      new_aoi_points[.] %>%
+      new_aoi_points[.]%>%
       suppressMessages()
     
     # Bind geo_2 to geo_1
@@ -144,4 +149,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   }
   
   return(final_geo)
+  
+  sf::sf_use_s2(TRUE)
+  
 }
