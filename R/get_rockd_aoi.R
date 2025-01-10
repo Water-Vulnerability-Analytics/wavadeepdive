@@ -22,33 +22,30 @@
 
 get_rockd_aoi <- function(aoi, crop = TRUE) {
   
-  sf::sf_use_s2(FALSE)
-  
-  #aoi <- park_boundary
-  
-  #' Function to convert aoi to gridded points
-  #' @param polygon = polygon area to make points in
-  #' @param cellsize = size of cells to divide polygon and place point at center.
-  poly_to_points <- function(polygon, cellsize) {
-    
-    # Create a grid covering the extent of the polygon
-    grid <- st_make_grid(st_bbox(polygon), cellsize = cellsize)
-    
-    # Intersect the grid with the polygon
-    grid_intersect <- suppressWarnings(st_intersection(grid, polygon)) %>%
-      suppressMessages()
-    
-    # Convert to sf POINTS object
-    grid_points <- st_centroid(grid_intersect) %>%
-      suppressMessages()
-    
-    return(grid_points)
-  }
+  #' #' Function to convert aoi to gridded points
+  #' #' @param polygon = polygon area to make points in
+  #' #' @param cellsize = size of cells to divide polygon and place point at center.
+  #' poly_to_points <- function(polygon, cellsize) {
+  #'   
+  #'   # Create a grid covering the extent of the polygon
+  #'   grid <- st_make_grid(st_bbox(polygon), cellsize = cellsize)
+  #'   
+  #'   # Intersect the grid with the polygon
+  #'   grid_intersect <- suppressWarnings(st_intersection(grid, polygon)) %>%
+  #'     suppressMessages()
+  #'   
+  #'   # Convert to sf POINTS object
+  #'   grid_points <- st_centroid(grid_intersect) %>%
+  #'     suppressMessages()
+  #'   
+  #'   return(grid_points)
+  #' } # CM commented out in case we need to return to/reference this
   
   # Convert aoi to points
-  aoi_points <- aoi %>%
-    poly_to_points(cellsize = .005)
-  
+  # aoi_points <- aoi %>%
+  #   poly_to_points(cellsize = .005)
+  aoi_points <- st_make_grid(aoi, what = "centers", n = c(100,100)) # CM new method
+
   # Pull geology for first point
   geo_1 <- get_rockd(aoi_points[1]) 
   
@@ -109,9 +106,10 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
       dplyr::filter(source_id == source) %>% 
       st_make_valid()
     
+    
     # Remove points that intersect the new geologic extent
     new_aoi_points <- new_aoi_points %>%
-      st_make_valid() %>% 
+      #st_make_valid() %>% 
       st_intersects(geo_2) %>% 
       lengths() %>% 
       `==`(0) %>% 
@@ -150,6 +148,6 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   
   return(final_geo)
   
-  sf::sf_use_s2(TRUE)
+  #sf::sf_use_s2(TRUE)
   
 }
