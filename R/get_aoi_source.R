@@ -22,6 +22,7 @@ get_aoi_source <- function(sf = source_table_locs) {
   
   sf_crs <- st_crs(sf)
   
+  
  sf <- sf %>%
       dplyr::mutate(
         method = 
@@ -41,10 +42,10 @@ get_aoi_source <- function(sf = source_table_locs) {
   # Populate each row with aoi
   for(i in 1:nrow(sf)) {
     
-    #i <- 2
+   # i <- 2
     
     # Shallow method - get watershed
-    if (sf[i,][["method"]] == "SHALLOW METHOD") {
+    if (sf[i,][["source_type"]] %in% c("Shallow Groundwater", "River/Stream")) {
       
       # First get watershed
       ws <- sf[i,]["geometry"] %>% 
@@ -55,7 +56,7 @@ get_aoi_source <- function(sf = source_table_locs) {
                       name = "Watershed") 
       aoi[[i]] <- ws
       
-      if (sf[i,][["type"]] == "Well") {
+      if (sf[i,][["source_infrastructure"]] == "Well") {
         
         # Then get formation extent- shallow so use min age geologic unit as 
         # filter
@@ -63,16 +64,18 @@ get_aoi_source <- function(sf = source_table_locs) {
           get_rockd(points = .) %>%
           dplyr::filter(b_int_age == min(b_int_age)) %>%
           st_make_valid() %>%
-          dplyr::mutate(type = "Formation")
+          dplyr::mutate(type = "Formation") 
         
         if (nrow(all_formations) > 1) {
           
-          combined_unit <- st_union(all_formations)
+          all_formations <- all_formations[2,]
           
-          combined_unit <- st_sf(geometry = combined_unit, 
-                                 all_formations[1, 
-                                                !names(all_formations) %in% "geometry"])
-          all_formations <- combined_unit
+          #combined_unit <- st_union(all_formations)
+          
+          #combined_unit <- st_sf(geometry = combined_unit, 
+          #                       all_formations[1, 
+          #                                      !names(all_formations) %in% "geometry"])
+          #all_formations <- combined_unit
         }
         
         aoi[[i]] <- bind_rows(ws, all_formations)
