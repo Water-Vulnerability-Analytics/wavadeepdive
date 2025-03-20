@@ -12,24 +12,31 @@
 #' @return A spatial sf object for each specified park boundary
 
 getOvernightStays <- function(park){
+  
   suppressMessages(suppressWarnings({
-    raw_table <- rvest::read_html(paste0('https://irma.nps.gov/Stats/MvcReportViewer.aspx?_id=5f032a4d-01f9-4078-94b4-6c26358cc826&_m=Remote&_r=%2fNPS.Stats.Reports%2fPark+Specific+Reports%2fOvernight+Stays+(1979+-+Last+Calendar+Year)&_15=True&_16=True&_18=True&_19=True&_34=False&_35=False&_39=880px&Park=', park)) %>%
-      rvest::html_table() %>%
-      .[[34]]
-    column_names <- raw_table[2, ]
-    # Create a new data frame with the correct column names
-    fixed_table <- raw_table %>%
-      # Remove the empty rows and the one that contains the column names
-      slice(c(-1, -2)) %>%  
-      # Set the column names to the extracted values
-      set_names(column_names) %>% 
-      # Remove commas, convert all columns to numeric
-      mutate(across(everything(), ~ str_replace_all(., ",", ""))) %>%
-      mutate(across(everything(), as.numeric)) %>%
-      # Add park name as column
-      mutate(park = park)
+  
+  raw_table <- rvest::read_html(paste0('https://irma.nps.gov/Stats/MvcReportViewer.aspx?_id=5f032a4d-01f9-4078-94b4-6c26358cc826&_m=Remote&_r=%2fNPS.Stats.Reports%2fPark+Specific+Reports%2fOvernight+Stays+(1979+-+Last+Calendar+Year)&_15=True&_16=True&_18=True&_19=True&_34=False&_35=False&_39=880px&Park=', park)) %>%
+    rvest::html_table() %>%
+    .[[34]]
+  
+  column_names <- raw_table[2, ]
+  
+  # Create a new data frame with the correct column names
+  fixed_table <- raw_table %>%
+    # Remove the empty rows and the one that contains the column names
+    slice(c(-1, -2)) %>%  
+    # Set the column names to the extracted values
+    set_names(column_names) %>% 
+    # Remove commas, convert all columns to numeric
+    mutate(across(everything(), ~ str_replace_all(., ",", ""))) %>%
+    mutate(across(everything(), as.numeric)) %>%
+    # Add park name as column
+    mutate(park = park)
+  
   }))
+  
   return(fixed_table)
+  
 }
 
 # # Code to grab for all parks:
