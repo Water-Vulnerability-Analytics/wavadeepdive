@@ -29,10 +29,15 @@ aquifer_volume <- function(dtw_ft,
   #aquifer_extent <- marine
   #full_thickness_ft <- 60 # ft
   #theta_deg <- 10 # degrees
-  #dtw_ft <- 10 # gw depth
+  #dtw_ft <- spei_historical_gw$static_ft[1] # gw depth
   #sy <- .2 # unitless
   # well_depth <- 30 #ft approx depth of screened interval
-  # valley_wall_elev <- 30 #ft from DEM
+  #valley_wall_elev <- 30 #ft from DEM
+  
+  suppressMessages(
+    suppressWarnings(sf_use_s2(FALSE)
+                     )
+    )
   
   if(is.na(dtw_ft)) {
     return(NA)
@@ -52,7 +57,7 @@ aquifer_volume <- function(dtw_ft,
     # deepens, the effective "area" of the aquifer shrinks. This uses the approx.
     # valley angle reported by Marine (1962) to calculate the effective decrease
     # in aquifer width for a change in groundwater depth.
-    buffer_length <- (dtw_ft + valley_wall_elev)/tan(theta_deg*pi/180) 
+    buffer_length <- (dtw_ft + valley_wall_elev)/tan(theta_deg*pi/180) / 366002.44 # in decimal degrees
     
     # Use that buffer distance to remove buffer distance from the original
     # aquifer extent.
@@ -60,17 +65,20 @@ aquifer_volume <- function(dtw_ft,
       suppressMessages(
         suppressWarnings(
           st_buffer(aquifer_extent, 
-                    buffer_length/-366002.44))) # ft to decimal degrees
+                    -buffer_length))) # ft to lat/long
     
     # Calculate the area of the new aquifer extent in ft2
     new_aquifer_area <- 
-      as.numeric(st_area(new_aquifer_extent)) * 10.764 # m2 to ft2
+     st_area(new_aquifer_extent) %>% 
+      set_units("ft^2") %>%
+      as.numeric()
     
     # Calculate the total "solid" volume of the new aquifer assuming a 
     # triangular prism.
     new_aquifer_volume <- 
       0.5 * new_aquifer_area * (full_thickness_ft - valley_wall_elev - dtw_ft)
     
+    # IF well doesn't penetrate aquifer, calculate triangular prism from well depth
     if (well_depth < (full_thickness_ft - valley_wall_elev)) {
       buffer_length_2 <- (well_depth + valley_wall_elev)/tan(theta_deg*pi/180)
       new_aquifer_extent2 <-
@@ -88,6 +96,13 @@ aquifer_volume <- function(dtw_ft,
     # Calculate the water volume in the aquifer assuming a given specific yield.
     water_volume <- 
       new_aquifer_volume * sy 
+    
+    
+    suppressMessages(
+      suppressWarnings(sf_use_s2(TRUE)
+      )
+    )
+    
     
     return(water_volume)
     
