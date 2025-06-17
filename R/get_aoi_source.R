@@ -18,7 +18,7 @@
 get_aoi_source <- function(sf = source_table_locs) {
   
   # for testing
-  #sf <- source_table_locs
+ #sf <- source_table_locs[1,]
   
   sf_crs <- st_crs(sf)
   
@@ -53,7 +53,8 @@ get_aoi_source <- function(sf = source_table_locs) {
         dplyr::summarize() %>%
         st_transform(., crs = sf_crs) %>%
         dplyr::mutate(type = "Watershed",
-                      name = "Watershed") 
+                      name = "Watershed") %>%
+        st_make_valid()
       aoi[[i]] <- ws
       
       if (sf[i,][["source_infrastructure"]] == "Well") {
@@ -63,7 +64,6 @@ get_aoi_source <- function(sf = source_table_locs) {
         all_formations <- sf[i,] %>%
           get_rockd(points = .) %>%
           dplyr::filter(b_int_age == min(b_int_age)) %>%
-          st_make_valid() %>%
           dplyr::mutate(type = "Formation") 
         
         if (nrow(all_formations) > 1) {
@@ -139,11 +139,14 @@ get_aoi_source <- function(sf = source_table_locs) {
         select_formation <- all_formations
       }
       
+      sf_use_s2(FALSE)
       select_formation <- select_formation %>%
         st_transform(., sf_crs) %>%
+        st_make_valid() %>%
         dplyr::mutate(type = "Formation",
-                      area = as.numeric(st_area(geometry))/(1000*1000)) %>%
+                      area = as.numeric(st_area(st_make_valid(geometry)) %>% set_units("km^2"))) %>%
         dplyr::filter(area < 1e4) # remove aoi > 10,000 km2
+      sf_use_s2(TRUE)
       
       aoi[[i]] <- select_formation
     }
