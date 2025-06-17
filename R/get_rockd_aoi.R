@@ -21,7 +21,7 @@
 #' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic outcrop extents that intersect the area of interest.
 
 get_rockd_aoi <- function(aoi, crop = TRUE) {
-  
+ 
   #' #' Function to convert aoi to gridded points
   #' #' @param polygon = polygon area to make points in
   #' #' @param cellsize = size of cells to divide polygon and place point at center.
@@ -41,39 +41,53 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   #'   return(grid_points)
   #' } # CM commented out in case we need to return to/reference this
   
+  # Define function to pull rockd sources for a given point retrieval of get_rockd
+  get_sources_rockd <- function(get_rockd_result) {
+    sf_use_s2(FALSE)
+    #map_sources <- rmacrostrat::def_sources(source_id = geo_1$source_id) %>%
+    #  dplyr::filter(area == min(area, na.rm = TRUE))
+    
+    # Get character string of available map sources
+    map_sources_str <- get_rockd_result[["source_id"]] %>% toString() %>% gsub(" ", "",.) %>% paste(collapse = ",")
+    
+    # Download map source metadata to allow selection of smallest area (or resolution)
+    map_sources <- RCurl::getURL(paste0("https://macrostrat.org/api/v2/defs/sources?source_id=", 
+                                        map_sources_str, 
+                                        "&format=geojson_bare"),
+                                 .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE)) %>% 
+      geojsonsf::geojson_wkt() %>%
+      dplyr::filter(scale %in% c("medium")) # From list, select medium scale
+    #dplyr::filter(area == min(area, na.rm = TRUE))
+    
+    source <- map_sources[["source_id"]]
+    
+    return(source)
+  }
+  
   # Convert aoi to points
   # aoi_points <- aoi %>%
   #   poly_to_points(cellsize = .005)
   aoi_points <- st_make_grid(aoi, what = "centers", n = c(100,100)) # CM new method
 
   # Pull geology for first point
-  geo_1 <- get_rockd(aoi_points[1]) 
+  geo_1 <- get_rockd(aoi_points[1])
   
   # Transform aoi_points to crs of geo_1
   aoi_points <- aoi_points %>%
     st_transform(st_crs(geo_1))
   
-  #map_sources <- rmacrostrat::def_sources(source_id = geo_1$source_id) %>%
-  #  dplyr::filter(area == min(area, na.rm = TRUE))
-  
-  # Get character string of available map sources
-  map_sources_str <- geo_1$source_id %>% toString() %>% gsub(" ", "",.) %>% paste(collapse = ",")
-  
-  # Download map source metadata to allow selection of smallest area (or resolution)
-  map_sources <- RCurl::getURL(paste0("https://macrostrat.org/api/v2/defs/sources?source_id=", 
-                                      map_sources_str, 
-                                      "&format=geojson_bare"),
-                               .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE)) %>% 
-    geojsonsf::geojson_wkt() %>%
-    dplyr::filter(area == min(area, na.rm = TRUE))
-  
-  # From list, select minimum area
-  source <- map_sources$source_id
+  source <- get_sources_rockd(geo_1)
   
   # Filter geo_1 to only include geologic layers from that source
   geo_1 <- geo_1 %>%
     dplyr::filter(source_id == source) %>% 
-    st_make_valid()
+    st_make_valid() %>%
+    dplyr::mutate(b_age = as.character(b_age),
+                  b_int_id = as.character(b_int_id),
+                  b_int_age = as.character(b_int_age),
+                  t_int_age = as.character(t_int_age),
+                  t_int_id = as.character(t_int_id),
+                  t_age = as.character(t_age))
   
   # Select all points that don't overlap with geo_1 and subsequently pull
   # geology for those points, repeating this selection process
@@ -89,7 +103,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   pt_num <- start_pt_num # assign to updatable point index
   
   while (length(new_aoi_points) > 0) {
-    
+    print(length(new_aoi_points))
     # Number of points at start of loop
     num_pts_start_loop <- length(new_aoi_points)
     
@@ -104,8 +118,13 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     # Get geology for pt_num
     geo_2 <- get_rockd(new_aoi_points[pt_num]) %>%
       dplyr::filter(source_id == source) %>% 
-      st_make_valid()
-    
+      st_make_valid() %>%
+      dplyr::mutate(b_age = as.character(b_age),
+                    b_int_id = as.character(b_int_id),
+                    b_int_age = as.character(b_int_age),
+                    t_int_age = as.character(t_int_age),
+                    t_int_id = as.character(t_int_id),
+                    t_age = as.character(t_age))
     
     # Remove points that intersect the new geologic extent
     new_aoi_points <- new_aoi_points %>%
@@ -126,6 +145,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     # issue with query. Bump up index and search next point.
     if (num_pts_end_loop == num_pts_start_loop) {
       pt_num <- pt_num + 1 
+      source <- get_sources_rockd(geo_2)
     } else if (num_pts_end_loop < num_pts_start_loop) {
       pt_num <- start_pt_num
     } 
@@ -137,7 +157,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     }
     
   }
-  
+  sf_use_s2(TRUE)
   # Crop if arg is TRUE
   if (crop == TRUE) {
     final_geo <- geo_1 %>%
@@ -148,6 +168,6 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   
   return(final_geo)
   
-  #sf::sf_use_s2(TRUE)
+#  sf::sf_use_s2(TRUE)
   
 }
