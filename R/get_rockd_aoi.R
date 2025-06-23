@@ -17,11 +17,12 @@
 #' 
 #' @param aoi An `sf` polygon object containing area to extract outcrop extents for.
 #' @param crop If true, crops outcrop extent to aoi. False, keeps expansive bounds.
-#' 
+#' @param resolution Set resolution for geologic layers to pull. Tiny = very coarse,
+#' large = very fine. The finer, the longer it takes.
 #' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic outcrop extents that intersect the area of interest.
 
-get_rockd_aoi <- function(aoi, crop = TRUE) {
- 
+get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny","small","medium","large")) {
+
   #' #' Function to convert aoi to gridded points
   #' #' @param polygon = polygon area to make points in
   #' #' @param cellsize = size of cells to divide polygon and place point at center.
@@ -41,9 +42,19 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   #'   return(grid_points)
   #' } # CM commented out in case we need to return to/reference this
   
-  # Define function to pull rockd sources for a given point retrieval of get_rockd
-  get_sources_rockd <- function(get_rockd_result) {
-    sf_use_s2(FALSE)
+  
+  sf_use_s2(FALSE) # KEC note - there are too many complex geometries to have 
+  # this on. Many sf objects lead to errors when set to true, even with
+  # st_make_valid(). Not sure if there are other suggestions, but for now,
+  # setting to FALSE while running.
+  
+  # Define function to pull rockd sources for a given retrieval of get_rockd().
+  # This function takes a list of all the rockd "source_id" strings and 
+  # selects the one with "medium" resolution. This can be added as an 
+  # argument, potentially within the parent function call.
+  # 
+  get_sources_rockd <- function(get_rockd_result, res = resolution) {
+    
     #map_sources <- rmacrostrat::def_sources(source_id = geo_1$source_id) %>%
     #  dplyr::filter(area == min(area, na.rm = TRUE))
     
@@ -56,7 +67,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
                                         "&format=geojson_bare"),
                                  .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE)) %>% 
       geojsonsf::geojson_wkt() %>%
-      dplyr::filter(scale %in% c("medium")) # From list, select medium scale
+      dplyr::filter(scale %in% res) 
     #dplyr::filter(area == min(area, na.rm = TRUE))
     
     source <- map_sources[["source_id"]]
@@ -68,7 +79,8 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
   # aoi_points <- aoi %>%
   #   poly_to_points(cellsize = .005)
   aoi_points <- st_make_grid(aoi, what = "centers", n = c(100,100)) # CM new method
-
+  tp <- length(aoi_points)
+  
   # Pull geology for first point
   geo_1 <- get_rockd(aoi_points[1])
   
@@ -98,25 +110,33 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     aoi_points[.] %>%
     suppressMessages()
   
-  
+  # Pt num is the point number for existing points in the grid. Sometimes,
+  # the first search point fails for whatever reason. The code just moves 
+  # to the adjacent point when that's the case.
   start_pt_num <- 1 # base point index that subsequent code will reset to
   pt_num <- start_pt_num # assign to updatable point index
   
-  while (length(new_aoi_points) > 0) {
-    print(length(new_aoi_points))
-    # Number of points at start of loop
-    num_pts_start_loop <- length(new_aoi_points)
+  # Initiate progress bar
+  pb <- txtProgressBar(min = 0, max = tp, style = 3, char = "=")
     
-    # Print for status update (can remove)
-    #print(paste0("Points left: ", num_pts_start_loop))
+  while (length(new_aoi_points) > 0) {
+   
+    # Svae number of remaining points at start of loop
+    num_pts_start_loop <- length(new_aoi_points)
     
     # Error check -- if pt_index is greater than # pts, reset
     if (pt_num > num_pts_start_loop) {
       pt_num <- start_pt_num
     }
     
-    # Get geology for pt_num
-    geo_2 <- get_rockd(new_aoi_points[pt_num]) %>%
+    # Get geology for current pt_num
+    geo_2 <- get_rockd(new_aoi_points[pt_num])
+    
+    if (nrow(geo_2) > 0) {
+      # Update Source
+      source <- get_sources_rockd(geo_2)
+      # Filter geo2
+      geo_2 <- geo_2 %>%
       dplyr::filter(source_id == source) %>% 
       st_make_valid() %>%
       dplyr::mutate(b_age = as.character(b_age),
@@ -125,6 +145,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
                     t_int_age = as.character(t_int_age),
                     t_int_id = as.character(t_int_id),
                     t_age = as.character(t_age))
+    }
     
     # Remove points that intersect the new geologic extent
     new_aoi_points <- new_aoi_points %>%
@@ -138,17 +159,23 @@ get_rockd_aoi <- function(aoi, crop = TRUE) {
     # Bind geo_2 to geo_1
     geo_1 <- bind_rows(geo_1, geo_2)
     
-    # Calc num points left after removing points
+    # Calculate number of points left after removing points
     num_pts_end_loop <- length(new_aoi_points)
     
-    # Check that num points actually changed. If not, could be an "overlap"
-    # issue with query. Bump up index and search next point.
+    # Check if the number of remaining points went down. If not, bump up index 
+    # and search next point.
     if (num_pts_end_loop == num_pts_start_loop) {
-      pt_num <- pt_num + 1 
-      source <- get_sources_rockd(geo_2)
+      pt_num <- pt_num + 1
+      #if (nrow(geo_2) > 0) {
+      #  source <- get_sources_rockd(geo_2)
+      #}
     } else if (num_pts_end_loop < num_pts_start_loop) {
       pt_num <- start_pt_num
     } 
+    
+    
+    #  Update the progress bar
+    setTxtProgressBar(pb, tp - num_pts_end_loop)
     
     # If there are no points left, or if on the last point for the second time
     # break while loop
