@@ -17,8 +17,9 @@
 #' 
 #' @param aoi An `sf` polygon object containing area to extract outcrop extents for.
 #' @param crop If true, crops outcrop extent to aoi. False, keeps expansive bounds.
-#' @param resolution Set resolution for geologic layers to pull. Tiny = very coarse,
-#' large = very fine. The finer, the longer it takes.
+#' @param resolution Set resolution for geologic layers to pull. Either "tiny",
+#' "small", "medium", or "large" in order of decreasing resolution. I.e., 
+#' tiny = coarse resolution (quicker), large = finest resolution (takes much longer)
 #' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic outcrop extents that intersect the area of interest.
 
 get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny","small","medium","large")) {
