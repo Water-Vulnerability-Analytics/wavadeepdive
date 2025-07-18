@@ -42,7 +42,14 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   sf_use_s2(FALSE) # KEC note - there are too many complex geometries to have 
   # this on. Many sf objects lead to errors when set to true, even with
   # st_make_valid(). Not sure if there are other suggestions, but for now,
-  # setting to FALSE while running.
+  # setting to FALSE while running.  
+
+  # Get map of us for removing points outside of boundary (errors). Add a small
+  # buffer because coastal points often return errors because of slight offsets
+  # between geologic map and actual coastline.
+  us_states_sf <- states(cb = TRUE, class = "sf") %>%
+    dplyr::summarize() %>%
+    st_buffer(-.008)
   
   # Track if a fallback resolution is used
   resolution_fallback_used <- FALSE
@@ -89,6 +96,13 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
   
   # Create grid of points within AOI
   aoi_points <- st_make_grid(aoi, what = "centers", n = c(100, 100))
+  
+  # Now, filter to points within US (minus buffer)
+  intersection_indices <- st_intersects(aoi_points, us_states_sf)
+  points_in_polygon_logical <- lengths(intersection_indices) > 0
+  aoi_points <- aoi_points[points_in_polygon_logical]
+  
+  # Get length of points for tracking progress  
   tp <- length(aoi_points)
   
   # Pull geology for first point
@@ -159,7 +173,10 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
         )
     }
     
-    # Remove points that intersect the new geologic extent
+    # Remove the point that was just tested
+    new_aoi_points <- new_aoi_points[-pt_num]
+    
+    # Remove any other points that intersect the newly returned geologic extent
     new_aoi_points <- new_aoi_points %>%
       st_intersects(geo_2) %>%
       lengths() %>%
