@@ -133,8 +133,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
     st_intersects(geo_1) %>%
     lengths() %>%
     `==`(0) %>%
-    aoi_points[.] %>%
-    suppressMessages()
+    aoi_points[.]
   
   
   # Pt num is the point number for existing points in the grid. Sometimes,
