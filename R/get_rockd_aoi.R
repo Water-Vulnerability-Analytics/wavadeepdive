@@ -180,8 +180,7 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
       st_intersects(geo_2) %>%
       lengths() %>%
       `==`(0) %>%
-      new_aoi_points[.] %>%
-      suppressMessages()
+      new_aoi_points[.]
     
     # Bind geo_2 to geo_1
     geo_1 <- dplyr::bind_rows(geo_1, geo_2)
