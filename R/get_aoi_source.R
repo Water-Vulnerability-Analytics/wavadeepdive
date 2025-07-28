@@ -139,14 +139,12 @@ get_aoi_source <- function(sf = source_table_locs) {
         select_formation <- all_formations
       }
       
-      sf_use_s2(FALSE)
       select_formation <- select_formation %>%
         st_transform(., sf_crs) %>%
         st_make_valid() %>%
         dplyr::mutate(type = "Formation",
                       area = as.numeric(st_area(st_make_valid(geometry)) %>% set_units("km^2"))) %>%
         dplyr::filter(area < 1e4) # remove aoi > 10,000 km2
-      sf_use_s2(TRUE)
       
       aoi[[i]] <- select_formation
     }
