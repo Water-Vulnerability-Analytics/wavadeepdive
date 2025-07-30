@@ -34,10 +34,14 @@ get_rockd <- function(points){
                               "&lng=",
                               aoi$X[i],
                               "&adjacents=true&format=geojson_bare"),#geologic_units/map?strat_name_id=2683&format=geojson_bare",
-                       .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE))
+                       .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE)) %>%
+      str_replace_all(., "\u000B", "")
     
-    sf_temp[[i]] <- geojsonsf::geojson_wkt(y) %>%
-      dplyr::mutate(aoi$rowid[i])
+    # If not an empty object, then extract geojson
+    if(fromJSON(y)$features %>% length() > 0) {
+      sf_temp[[i]] <- geojsonsf::geojson_wkt(y) %>%
+        dplyr::mutate(aoi$rowid[i])
+    }
   }
   
   sf_temp <- sf_temp %>% dplyr::bind_rows() %>%
