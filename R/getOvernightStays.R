@@ -1,44 +1,80 @@
-#' Import park visitation data, broken down by type.
+#' Get monthly visitor use and overnight-stay components for NPS unit(s)
+#'
+#' Reads locally stored NPS visitor use data files (from Data Store exports),
+#' filters to one or more NPS unit codes, reshapes to compute derived day-use and
+#' overnight-use metrics, and returns a tidy monthly time series.
+#' @param parks Character vector of NPS unit code(s)
+#'
+#' @return A tibble with one row per unit code per month of visitation data.
 #' 
-#' This function uses the Data Store REST Api to download national park boundary 
-#' shapefiles. 
-#' Use this resource to get updated REST URL: https://irmaservices.nps.gov/datastore/v6/documentation/datastore-api.html#/Search_By_Reference_Code/ReferenceCodeSearch_Get
-#' And this to find updated download links: https://irma.nps.gov/DataStore/Reference/Profile/2224545?lnv=True 
-#' 
-#' @param park The 4 digit national park code(s) for parks of interest
-#' @param save Whether to save (TRUE) the resulting shapefile or not (FALSE)
-#' @param path If `save = TRUE`, the file path to save the shapefile
-#' 
-#' @return A spatial sf object for each specified park boundary
-
-getOvernightStays <- function(park){
+getOvernightStays <- function(parks){
+  # vars we care about - 
+  visit_vars <- c("Backcountry", "ConcessionerCamping", "ConcessionerLodging",
+                  "MiscellaneousOvernightStays", "NonRecreationOvernightStays",
+                  "NonRecreationVisits", "RecreationVisits",
+                  "RVCampers", "TentCampers")
   
-  suppressMessages(suppressWarnings({
+  all_parks <- list.files("data/all/nps_visitor_use_data/", full.names = TRUE) %>%
+    purrr::map(~data.table::fread(.) %>% mutate(across(everything(), as.character))) %>%
+    dplyr::bind_rows() %>%
+    mutate(UnitCode = case_when(UnitCode == "JOFK" ~ "JOFI",
+                                UnitCode == "KLSE" ~ "KLGO",
+                                UnitCode == "MAMC" ~ "MABE", 
+                                UnitCode == "NCPC" ~ "NACA",
+                                UnitCode == "NCPE" ~ "NACA",
+                                UnitCode == "NAVC" ~ "NACA",
+                                UnitCode == "OKCI" ~ "OKCI",
+                                UnitCode == "PRPA" ~ "NACA",
+                                .default = UnitCode))
   
-  raw_table <- rvest::read_html(paste0('https://irma.nps.gov/Stats/MvcReportViewer.aspx?_id=5f032a4d-01f9-4078-94b4-6c26358cc826&_m=Remote&_r=%2fNPS.Stats.Reports%2fPark+Specific+Reports%2fOvernight+Stays+(1979+-+Last+Calendar+Year)&_15=True&_16=True&_18=True&_19=True&_34=False&_35=False&_39=880px&Park=', park)) %>%
-    rvest::html_table() %>%
-    .[[34]]
+  park_select <- all_parks %>%
+    dplyr::filter(UnitCode %in% parks) %>%
+    select(UnitCode, Month, Year, Backcountry, ConcessionerCamping, ConcessionerLodging,
+           MiscellaneousOvernightStays, NonRecreationOvernightStays, NonRecreationVisits, RecreationVisits, RVCampers, TentCampers) %>%
+    mutate(ym = lubridate::ym(paste0(Year, "-", Month))) %>%
+    pivot_longer(cols = any_of(visit_vars), names_to = "var", values_to = "visits") %>%
+    mutate(visits = as.numeric(gsub(",|-", "", visits))) %>%
+    distinct()
   
-  column_names <- raw_table[2, ]
+  park_select_wide <- park_select %>% pivot_wider(names_from = var, values_from = visits, values_fn = mean) %>%
+    mutate(RecreationDayUse = RecreationVisits - ConcessionerLodging - ConcessionerCamping - TentCampers - RVCampers - Backcountry - MiscellaneousOvernightStays,
+           NonRecreationDayUse = NonRecreationVisits - NonRecreationOvernightStays,
+           RecreationOvernightUse = ConcessionerLodging + ConcessionerCamping + TentCampers + RVCampers + Backcountry + MiscellaneousOvernightStays,
+           NonRecreationOvernightUse = NonRecreationOvernightStays,
+           TotalDayUse = NonRecreationDayUse + RecreationDayUse,
+           TotalOvernightUse = NonRecreationOvernightUse + RecreationOvernightUse,
+           TotalPeople = RecreationDayUse + RecreationOvernightUse + NonRecreationDayUse + NonRecreationOvernightUse) %>%
+    select(-c(Month, Year, NonRecreationOvernightStays)) 
   
-  # Create a new data frame with the correct column names
-  fixed_table <- raw_table %>%
-    # Remove the empty rows and the one that contains the column names
-    slice(c(-1, -2)) %>%  
-    # Set the column names to the extracted values
-    set_names(column_names) %>% 
-    # Remove commas, convert all columns to numeric
-    mutate(across(everything(), ~ str_replace_all(., ",", ""))) %>%
-    mutate(across(everything(), as.numeric)) %>%
-    # Add park name as column
-    mutate(park = park)
-  
-  }))
-  
-  return(fixed_table)
+  return(park_select_wide)
   
 }
 
+#   suppressMessages(suppressWarnings({
+#   
+#   raw_table <- rvest::read_html(paste0('https://irma.nps.gov/Stats/MvcReportViewer.aspx?_id=5f032a4d-01f9-4078-94b4-6c26358cc826&_m=Remote&_r=%2fNPS.Stats.Reports%2fPark+Specific+Reports%2fOvernight+Stays+(1979+-+Last+Calendar+Year)&_15=True&_16=True&_18=True&_19=True&_34=False&_35=False&_39=880px&Park=', park)) %>%
+#     rvest::html_table() %>%
+#     .[[34]]
+#   
+#   column_names <- raw_table[2, ]
+#   
+#   # Create a new data frame with the correct column names
+#   fixed_table <- raw_table %>%
+#     # Remove the empty rows and the one that contains the column names
+#     slice(c(-1, -2)) %>%  
+#     # Set the column names to the extracted values
+#     set_names(column_names) %>% 
+#     # Remove commas, convert all columns to numeric
+#     mutate(across(everything(), ~ str_replace_all(., ",", ""))) %>%
+#     mutate(across(everything(), as.numeric)) %>%
+#     # Add park name as column
+#     mutate(park = park)
+#   
+#   }))
+#   
+#   return(fixed_table)
+#   
+# }
 # # Code to grab for all parks:
 #  parks <- getParkSystem() %>%
 #    .$UNIT_CODE %>%
