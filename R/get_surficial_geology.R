@@ -82,14 +82,15 @@ get_surficial_geology <- function(aoi) {
     # --- 5. Post-Download Checks ---
     if (nrow(return_dat) == 0) {
       message("Warning: No features found intersecting the provided AOI.")
+      
+    } else {
+      message(sprintf("Success: Downloaded %d features.", nrow(return_dat)))
+      
       # Join unit info
       return_dat <- return_dat %>%
         left_join(map_units_dat %>% st_drop_geometry() %>%
                     select(-c(OBJECTID, Symbol, Label)), 
                   by = "MapUnit")
-      
-    } else {
-      message(sprintf("Success: Downloaded %d features.", nrow(return_dat)))
       
       # Check if we likely hit the server's Transfer Limit (usually 1k or 2k)
       # If the count is exactly a 'round' number like 1000, 2000, or 5000, warn the user.
