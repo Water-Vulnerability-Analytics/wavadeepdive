@@ -8,6 +8,7 @@
 #'   Typical values are 0.95 to 0.99.
 #' @param BFImax A numeric value representing the maximum baseflow index 
 #'   attainable for the specific catchment.
+#' @param bf_0 Baseflow at time 0. If NULL (default), assume 50% of discharge
 #'
 #' @return A data frame containing the original discharge (q), 
 #'   calculated baseflow (bf), and quickflow (qf).
@@ -27,14 +28,29 @@
 #'    0.25: For "flashy" watersheds with hard-rock geology.
 #'
 #'
-baseflow_eckhardt <- function(q, alpha = 0.98, BFImax = 0.8) {
+baseflow_eckhardt <- function(q, alpha = 0.98, BFImax = 0.8, bf_0 = NULL) {
+  
+  
+  # If bf_0 is provided, ensure it is numeric and less than the first discharge value
+  if (!is.null(bf_0)) {
+    if (!is.numeric(bf_0) || bf_0 >= q[1]) {
+      stop(paste0("Invalid bf_0: Must be numeric and less than q[1] (", q[1], "). ",
+                  "Provided value: ", bf_0))
+    }
+  }
   
   n <- length(q)
   bf <- numeric(n)
   
+  
   # Initialize: Assume first day baseflow is 50% of discharge 
   # or use a more specific starting point if available.
-  bf[1] <- q[1] * BFImax
+  if (is.null(bf_0)) {
+    # Defaulting to q[1] * BFImax is a standard Eckhardt initialization
+    bf[1] <- q[1] * BFImax
+  } else {
+    bf[1] <- bf_0
+  }
   
   # Calculate filter constants to save computation in the loop
   c1 <- (1 - BFImax) * alpha
