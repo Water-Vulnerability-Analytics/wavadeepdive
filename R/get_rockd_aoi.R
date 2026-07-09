@@ -93,7 +93,11 @@ get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "med
     
     stop("No resolution available for the AOI.")
   }
+  if(crs(us_states_sf) != crs(aoi)){
+    
+    aoi <- aoi %>% st_transform(crs(us_states_sf))
   
+  }
   # Create grid of points within AOI
   aoi_points <- st_make_grid(aoi, what = "centers", n = c(100, 100))
   
