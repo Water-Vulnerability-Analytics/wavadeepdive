@@ -1,0 +1,65 @@
+Package: wavadeepdive
+Title: Data Retrieval and Analysis Functions for WaVA Deep Dives
+Version: 0.1.0
+Authors@R: c(
+    person("Caitlin", "Mothes", role = "aut",
+           email = "Caitlin.Mothes@colostate.edu"),
+    person("Katie", "Willi", role = "aut",
+           email = "Kathryn.Willi@colostate.edu"),
+    person("Kristen", "Cognac", role = "aut",
+           email = "Kristen.Cognac@colostate.edu"),
+    person("Juan", "De La Torre", role = c("cre", "aut"),
+           email = "juan.delatorre@colostate.edu"))
+Description: Functions used by the park-specific deep-dive water supply
+    vulnerability assessments of National Park Service units: retrieving
+    water rights, groundwater, streamflow, climate, weather, geology and
+    visitation data, and a few analysis helpers.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = FALSE)
+URL: https://github.com/Water-Vulnerability-Analytics/wavadeepdive
+BugReports: https://github.com/Water-Vulnerability-Analytics/wavadeepdive/issues
+Remotes:
+    Water-Vulnerability-Analytics/wavacore,
+    mikejohnson51/climateR,
+    ropensci/rnoaa
+Imports: 
+    arcgisutils,
+    climateR,
+    data.table,
+    dataRetrieval,
+    dplyr,
+    geojsonsf,
+    ggforce,
+    ggfortify,
+    ggplot2,
+    ggrepel,
+    httr,
+    janitor,
+    jsonlite,
+    lubridate,
+    nhdplusTools,
+    purrr,
+    RCurl,
+    readr,
+    rlang,
+    rvest,
+    sf,
+    soilDB,
+    stats,
+    stringr,
+    terra,
+    tibble,
+    tidyr,
+    tigris,
+    units,
+    utils,
+    vctrs,
+    wavacore
+Suggests:
+    RSelenium,
+    rnoaa,
+    testthat,
+    withr
+Config/roxygen2/version: 8.0.0
+Config/testthat/edition: 3
