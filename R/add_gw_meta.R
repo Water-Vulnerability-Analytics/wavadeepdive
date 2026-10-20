@@ -2,9 +2,11 @@
 #' @param nwis_groundwater a list of nwis groundwater sites returned and filtered from function 'listNWIS'
 #'              
 
+#' @export
 add_gw_meta <- function(nwis_groundwater) {
 
 # Define function to get well metadata
+#' @export
 get_well_meta <- function(gw_list) {
   
   # First, get well metadata using dataRetrieval function 'readNWISsite'

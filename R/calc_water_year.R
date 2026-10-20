@@ -1,10 +1,11 @@
 # Calculate the water year given an array of dates. Optional modification of
 # start month in case area follows a different water year.
 
-#' @param dates = date array
+# @param dates = date array
 #' @param water_year_start_month integer number between 1 and 12 indicating
 #'                               the month that water year starts.
 
+#' @export
 calc_water_year <- function(dates, water_year_start_month = 10) {
   # Ensure the input is treated as a date (lubridate functions handle various formats)
   dates <- as_date(dates)

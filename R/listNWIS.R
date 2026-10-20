@@ -5,6 +5,7 @@
 #' @param aoi An sf polygon object, often a park boundary (or boundaries) retrieved from `getParkBoundary()`.
 #' @param dist The distance (in the same units used by `getParkBoundary()`) to buffer around park boundary
 #' @return An sf object of USGS gaging stations within given spatial boundary and attributes
+#' @export
 listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
   
   #tables <- rvest::read_html('https://help.waterdata.usgs.gov/parameter_cd?group_cd=%') %>%

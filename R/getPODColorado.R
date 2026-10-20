@@ -10,6 +10,7 @@
 #'
 #' @return An `sf` object of Colorado PODs within the aoi and its buffer.
 
+#' @export
 getPODColorado <- function(aoi, dist = 0){
   
   call <- "https://dnrftp.state.co.us/CDSS/GIS/Structure.zip"  #download boundary

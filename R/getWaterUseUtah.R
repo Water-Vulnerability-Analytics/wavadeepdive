@@ -1,3 +1,4 @@
+#' @export
 getWaterUseUtah <- function(WRID){
 
 url <- paste0("https://www.waterrights.utah.gov/asp_apps/viewEditPWS/pwsView.asp?SYSTEM_ID=", WRID)

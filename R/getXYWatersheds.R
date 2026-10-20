@@ -10,6 +10,7 @@
 #'   coordinates (in that order). Only used if sf parameter is NULL. Default is NULL.
 #' @param crs The coordinate system of the coordinates if that approach is used. 
 #' @param snap Whether to snap the point to the nearest NHD flowline. Default is FALSE.
+#' @export
 getXYWatersheds <- function(sf = NULL, coordinates = NULL, crs = NULL, snap = FALSE){
   
   if(is.null(sf)){

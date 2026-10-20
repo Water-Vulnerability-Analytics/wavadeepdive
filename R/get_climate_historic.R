@@ -50,6 +50,7 @@
 #'   intersecting GridMET cell polygons in the raster CRS. Default `FALSE`.
 
 
+#' @export
 get_climate_historic <- function(sf,
                                  col_name,
                                  start = "1979-01-01",

@@ -17,6 +17,7 @@
 #' Returns:
 #' @param water_volume The volume of water in the aquifer in cubic feet
 
+#' @export
 aquifer_volume <- function(dtw_ft,
                            aquifer_extent,
                            full_thickness_ft,

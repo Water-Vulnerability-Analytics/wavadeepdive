@@ -5,6 +5,7 @@
 #' @param dist The distance (in meters) to buffer around spatial object `park`
 #' 
 #' @return An sf object of water service areas within given spatial boundary and its attributes
+#' @export
 getWaterSuppliersUtah <- function(aoi, dist = 0){
   
   call <- "https://opendata.arcgis.com/api/v3/datasets/dc62a286013f447e88fc45480077c944_0/downloads/data?format=shp&spatialRefId=26912&where=1%3D1"

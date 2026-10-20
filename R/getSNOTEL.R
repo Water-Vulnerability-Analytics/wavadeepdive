@@ -9,6 +9,7 @@
 #' @param save Whether to save the resulting file (TRUE/FALSE)
 #' @param path If `save == TRUE`, the file path to save to
 #' @return An sf object of weather stations within given spatial boundary and attributes
+#' @export
 getSNOTEL <- function(aoi, 
                       dist = 0, 
                       years = "all", 

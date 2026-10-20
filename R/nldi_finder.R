@@ -1,3 +1,4 @@
+#' @export
 nldi_finder <- function(site_no) {
   #get those gages' watersheds using get_nldi_basin in the {nhdplusTools}.
   nldi_nwis <- list(featureSource = "nwissite",

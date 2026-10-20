@@ -4,6 +4,7 @@
 #' 
 #' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic layers that intersect the point object(s). 
 
+#' @export
 get_rockd <- function(points){
 
   #https://macrostrat.org/api/v2/geologic_units/map?lat=38.7806&lng=-109.5936&adjacents=true&format=geojson_bare

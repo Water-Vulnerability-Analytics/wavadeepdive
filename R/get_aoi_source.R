@@ -15,6 +15,7 @@
 #'           
 #' @return sf input dataframe with additional "aoi" columns containing
 #'         sf geometry and metadata for source area    
+#' @export
 get_aoi_source <- function(sf = source_table_locs) {
   
   # for testing
@@ -157,7 +158,7 @@ get_aoi_source <- function(sf = source_table_locs) {
 }
 
 
-#' Get formation info - used in get_aoi_source()
+# Get formation info - used in get_aoi_source()
 #' This function pulls geologic layers from the Macrostrat API that intersect 
 #' a user-specified point (or points) of interest. 
 #' 
@@ -166,6 +167,7 @@ get_aoi_source <- function(sf = source_table_locs) {
 #' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic 
 #' layers that intersect the point object(s). 
 
+#' @export
 get_formation_info <- function(formation_name, rock_type){
   
   # grab geologic layers that intersect the coordinates of the points of interest

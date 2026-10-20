@@ -2,6 +2,7 @@
 #' 
 #' https://public-nps.opendata.arcgis.com/datasets/nps::nps-buildings-web-mercator/explore?location=21.734632%2C-117.659450%2C4.08
 
+#' @export
 getBuildings <- function(park_boundary, dist = 0){
 
   #install.packages("arcgisbinding", repos="https://r.esri.com", type="win.binary")

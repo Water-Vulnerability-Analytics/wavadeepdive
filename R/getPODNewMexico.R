@@ -5,6 +5,7 @@
 #' @param dist The distance (in the same units used in  `aoi`) to buffer around spatial object `aoi`
 #' 
 #' @return An sf object of points of diversion within given spatial boundary and attributes
+#' @export
 getPODNewMexico <- function(aoi, dist = 0){
   
   # add buffer around park boundary

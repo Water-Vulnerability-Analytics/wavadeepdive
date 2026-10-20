@@ -7,6 +7,7 @@
 #'
 #' @return A tibble with one row per unit code per month of visitation data.
 #' 
+#' @export
 getOvernightStays <- function(parks){
   # vars we care about - 
   visit_vars <- c("Backcountry", "ConcessionerCamping", "ConcessionerLodging",
@@ -14,7 +15,7 @@ getOvernightStays <- function(parks){
                   "NonRecreationVisits", "RecreationVisits",
                   "RVCampers", "TentCampers")
   
-  all_parks <- list.files("data/all/nps_visitor_use_data/", full.names = TRUE) %>%
+  all_parks <- list.files(wava_data_path("all", "nps_visitor_use_data/"), full.names = TRUE) %>%
     purrr::map(~data.table::fread(.) %>% mutate(across(everything(), as.character))) %>%
     dplyr::bind_rows() %>%
     mutate(UnitCode = case_when(UnitCode == "JOFK" ~ "JOFI",

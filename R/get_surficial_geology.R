@@ -21,6 +21,7 @@
 #' @return An sf object containing the overlapping geologic features. Returns NULL if the 
 #' request fails or 0 rows if no features intersect the AOI.
 
+#' @export
 get_surficial_geology <- function(aoi) {
   
   # --- 1. Input Validation ---

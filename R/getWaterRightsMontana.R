@@ -21,6 +21,7 @@
 #' 
 #' @return A list of `sf` objects: Montana points of diversions, places of use, and reservoirs within the user-supplied aoi and buffer area.
 
+#' @export
 getWaterRightsMontana <- function(aoi, dist = 0){
   
   call <- "https://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights.gdb.zip"

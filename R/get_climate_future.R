@@ -74,6 +74,7 @@
 #'   When provided and `exact = TRUE`, future MACA rows are **shifted** to the
 #'   nearest of these points so that `x`/`y` in the output match the historical
 #'   coordinate set.  
+#' @export
 get_climate_future <- function(sf,
                                col_name,
                                start = "2023-01-01",

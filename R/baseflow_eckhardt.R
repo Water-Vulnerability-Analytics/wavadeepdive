@@ -28,6 +28,8 @@
 #'    0.25: For "flashy" watersheds with hard-rock geology.
 #'
 #'
+#' @noRd
+#' @export
 baseflow_eckhardt <- function(q, alpha = 0.98, BFImax = 0.8, bf_0 = NULL) {
   
   

@@ -18,26 +18,27 @@
 #' tiny = coarse resolution (quicker), large = finest resolution (takes much longer)
 #' @return An `sf` object of Macrostrat (https://macrostrat.org/) geologic outcrop extents that intersect the area of interest.
 
+#' @export
 get_rockd_aoi <- function(aoi, crop = TRUE, resolution = c("tiny", "small", "medium", "large")) {
   
-  #' #' Function to convert aoi to gridded points
-  #' #' @param polygon = polygon area to make points in
-  #' #' @param cellsize = size of cells to divide polygon and place point at center.
-  #' poly_to_points <- function(polygon, cellsize) {
-  #'   
-  #'   # Create a grid covering the extent of the polygon
-  #'   grid <- st_make_grid(st_bbox(polygon), cellsize = cellsize)
-  #'   
-  #'   # Intersect the grid with the polygon
-  #'   grid_intersect <- suppressWarnings(st_intersection(grid, polygon)) %>%
-  #'     suppressMessages()
-  #'   
-  #'   # Convert to sf POINTS object
-  #'   grid_points <- st_centroid(grid_intersect) %>%
-  #'     suppressMessages()
-  #'   
-  #'   return(grid_points)
-  #' } # CM commented out in case we need to return to/reference this
+  # #' Function to convert aoi to gridded points
+  # #' @param polygon = polygon area to make points in
+  # #' @param cellsize = size of cells to divide polygon and place point at center.
+  # poly_to_points <- function(polygon, cellsize) {
+  #   
+  #   # Create a grid covering the extent of the polygon
+  #   grid <- st_make_grid(st_bbox(polygon), cellsize = cellsize)
+  #   
+  #   # Intersect the grid with the polygon
+  #   grid_intersect <- suppressWarnings(st_intersection(grid, polygon)) %>%
+  #     suppressMessages()
+  #   
+  #   # Convert to sf POINTS object
+  #   grid_points <- st_centroid(grid_intersect) %>%
+  #     suppressMessages()
+  #   
+  #   return(grid_points)
+  # } # CM commented out in case we need to return to/reference this
   
   sf_use_s2(FALSE) # KEC note - there are too many complex geometries to have 
   # this on. Many sf objects lead to errors when set to true, even with

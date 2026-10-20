@@ -14,6 +14,7 @@
 #' @param park if to_plot is TRUE, the park name to put in the plot title
 #' list with first 
 
+#' @export
 select_cfs_deep_dive <- function(df,
                                  x,
                                  y,
