@@ -39,6 +39,7 @@ Imports:
     janitor,
     jsonlite,
     lubridate,
+    magrittr,
     nhdplusTools,
     purrr,
     RCurl,

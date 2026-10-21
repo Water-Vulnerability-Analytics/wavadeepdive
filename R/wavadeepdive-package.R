@@ -27,7 +27,7 @@
 #' @importFrom sf st_drop_geometry st_intersects st_make_grid st_make_valid
 #' @importFrom sf st_nearest_points st_read st_transform st_zm
 #' @importFrom stats prcomp quantile
-#' @importFrom stringr `%>%` str_detect str_extract str_replace
+#' @importFrom stringr str_detect str_extract str_replace
 #' @importFrom stringr str_replace_all str_sub word
 #' @importFrom terra crs
 #' @importFrom tibble column_to_rownames rowid_to_column rownames_to_column
