@@ -37,12 +37,12 @@ getNOAA <-
     
     #filter to aoi
     station_aoi <- all %>%
-      sf::st_transform(st_crs(aoi)) %>%
+      sf::st_transform(sf::st_crs(aoi)) %>%
       sf::st_filter(aoi) %>%
       dplyr::group_by(id, elevation, name, geometry, first_year) %>%
       dplyr::summarize() %>%
       sf::st_join(aoi) %>%
-      distinct(.keep_all = TRUE)
+      dplyr::distinct(.keep_all = TRUE)
     
     
     # if startDate = 'first', find min year in the station metadata
@@ -53,7 +53,7 @@ getNOAA <-
     station_aoi <- station_aoi %>%
       dplyr::group_by(id, elevation, name, geometry) %>%
       dplyr::summarize() %>%
-      distinct(.keep_all = TRUE)
+      dplyr::distinct(.keep_all = TRUE)
     
     #get weather data for all stations (depending on dates and how many stations this can take a while)
     weather_data <- rnoaa::meteo_pull_monitors(station_aoi$id, date_min = startDate,
@@ -63,7 +63,7 @@ getNOAA <-
     
     #tie back to coordinates
     final_data <- weather_data %>%
-      left_join(., station_aoi, by = "id") %>%
+      dplyr::left_join(., station_aoi, by = "id") %>%
       sf::st_as_sf() #add argument on whether to return sf or tibble?
     
     if (save == TRUE) {

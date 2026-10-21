@@ -44,7 +44,7 @@ getPODCalifornia <- function(aoi, dist=0){
   temp <- list.files(path = paste0(getwd(),"/temp_ewrims"), pattern = "*.zip", full.names = T)
   
   # unzip all your downloaded data files (one for every site)
-  try(unzip(temp,exdir=paste0(getwd(),"/temp_ewrims/eWRIMS.gdb")))
+  try(utils::unzip(temp,exdir=paste0(getwd(),"/temp_ewrims/eWRIMS.gdb")))
   
   # add buffer around park boundary  
   aoi_buffer <- aoi %>%
@@ -65,7 +65,7 @@ getPODCalifornia <- function(aoi, dist=0){
     sf::st_join(.,dplyr::select(aoi,within=UNIT_CODE),left=TRUE) %>%
     dplyr::mutate(park_right=ifelse(grepl("National Park", LAST_NAME, ignore.case=T), "Park","Non-park"),
                   within_park=ifelse(UNIT_CODE==within,"Within","Outside")) %>%
-    select(-within)
+    dplyr::select(-within)
   
   # end the RSelenium server session
   remDr$close()

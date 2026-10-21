@@ -21,7 +21,7 @@ get_aoi_source <- function(sf = source_table_locs) {
   # for testing
  #sf <- source_table_locs[1,]
   
-  sf_crs <- st_crs(sf)
+  sf_crs <- sf::st_crs(sf)
   
   
  sf <- sf %>%
@@ -52,10 +52,10 @@ get_aoi_source <- function(sf = source_table_locs) {
       ws <- sf[i,]["geometry"] %>% 
         getXYWatersheds(sf = ., coordinates = NULL) %>%
         dplyr::summarize() %>%
-        st_transform(., crs = sf_crs) %>%
+        sf::st_transform(., crs = sf_crs) %>%
         dplyr::mutate(type = "Watershed",
                       name = "Watershed") %>%
-        st_make_valid()
+        sf::st_make_valid()
       aoi[[i]] <- ws
       
       if (sf[i,][["source_infrastructure"]] == "Well") {
@@ -79,7 +79,7 @@ get_aoi_source <- function(sf = source_table_locs) {
           #all_formations <- combined_unit
         }
         
-        aoi[[i]] <- bind_rows(ws, all_formations)
+        aoi[[i]] <- dplyr::bind_rows(ws, all_formations)
       }
       
       
@@ -88,9 +88,9 @@ get_aoi_source <- function(sf = source_table_locs) {
     } else if (sf[i,"method"][["method"]] == "DEEP METHOD") {
       
       # extract some info about the formation
-      form_type <- word(sf[i,]$aquifer_name,-1)
+      form_type <- stringr::word(sf[i,]$aquifer_name,-1)
       form_name_long <- sf[i,]$aquifer_name
-      form_name_short <- word(form_name_long, 1)
+      form_name_short <- stringr::word(form_name_long, 1)
       
       # get all formations intersecting with point
       all_formations <- sf[i,] %>%
@@ -141,17 +141,17 @@ get_aoi_source <- function(sf = source_table_locs) {
       }
       
       select_formation <- select_formation %>%
-        st_transform(., sf_crs) %>%
-        st_make_valid() %>%
+        sf::st_transform(., sf_crs) %>%
+        sf::st_make_valid() %>%
         dplyr::mutate(type = "Formation",
-                      area = as.numeric(st_area(st_make_valid(geometry)) %>% set_units("km^2"))) %>%
+                      area = as.numeric(sf::st_area(sf::st_make_valid(geometry)) %>% units::set_units("km^2"))) %>%
         dplyr::filter(area < 1e4) # remove aoi > 10,000 km2
       
       aoi[[i]] <- select_formation
     }
   }
   
-  sf$aoi <- purrr::map(aoi, bind_rows)
+  sf$aoi <- purrr::map(aoi, dplyr::bind_rows)
   
   return(sf)
   

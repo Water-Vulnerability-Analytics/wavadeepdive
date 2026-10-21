@@ -36,7 +36,7 @@ aquifer_volume <- function(dtw_ft,
   #valley_wall_elev <- 30 #ft from DEM
   
   suppressMessages(
-    suppressWarnings(sf_use_s2(FALSE)
+    suppressWarnings(sf::sf_use_s2(FALSE)
                      )
     )
   
@@ -65,13 +65,13 @@ aquifer_volume <- function(dtw_ft,
     new_aquifer_extent <- 
       suppressMessages(
         suppressWarnings(
-          st_buffer(aquifer_extent, 
+          sf::st_buffer(aquifer_extent, 
                     -buffer_length))) # ft to lat/long
     
     # Calculate the area of the new aquifer extent in ft2
     new_aquifer_area <- 
-     st_area(new_aquifer_extent) %>% 
-      set_units("ft^2") %>%
+     sf::st_area(new_aquifer_extent) %>% 
+      units::set_units("ft^2") %>%
       as.numeric()
     
     # Calculate the total "solid" volume of the new aquifer assuming a 
@@ -85,9 +85,9 @@ aquifer_volume <- function(dtw_ft,
       new_aquifer_extent2 <-
         suppressMessages(
           suppressWarnings(
-            st_buffer(aquifer_extent,
+            sf::st_buffer(aquifer_extent,
                       buffer_length2/-366002.44)))
-      new_aquifer_area2 <- as.numeric(st_area(new_aquifer_extent2)) * 10.764
+      new_aquifer_area2 <- as.numeric(sf::st_area(new_aquifer_extent2)) * 10.764
       unavailable_volume <-
         0.5 * new_aquifer_area * (full_thickness_ft - valley_wall_elev - well_depth)
 
@@ -100,7 +100,7 @@ aquifer_volume <- function(dtw_ft,
     
     
     suppressMessages(
-      suppressWarnings(sf_use_s2(TRUE)
+      suppressWarnings(sf::sf_use_s2(TRUE)
       )
     )
     

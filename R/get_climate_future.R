@@ -134,8 +134,8 @@ get_climate_future <- function(sf,
   
   all_climate_data <- vector("list", length = nrow(sf) * length(GCM))
   idx <- 0
-  models <- str_extract(GCM, "^[^.]+")     # Get models to run
-  scenarios <- str_extract(GCM, "(?<=\\.).*")     # Get scenarios (rcps) 
+  models <- stringr::str_extract(GCM, "^[^.]+")     # Get models to run
+  scenarios <- stringr::str_extract(GCM, "(?<=\\.).*")     # Get scenarios (rcps) 
   
   if(any(unique(sf::st_geometry_type(sf)) %in% c("POLYGON", "MULTIPOLYGON"))) {
     
@@ -159,7 +159,7 @@ get_climate_future <- function(sf,
           pull_aoi <- aoi
         }
         
-        if (year(as.Date(start)) <= 2005 & year(as.Date(end)) > 2005) {
+        if (lubridate::year(as.Date(start)) <= 2005 & lubridate::year(as.Date(end)) > 2005) {
           
           # 2005 marks the start of RCP forcings. If start and end date span
           # 2005-2006, need to pull in separately
@@ -201,7 +201,7 @@ get_climate_future <- function(sf,
           
           if(exact == TRUE){
             # transform points to match raster CRS if needed
-            if(st_crs(gridmet_points) != clim_crs) {
+            if(sf::st_crs(gridmet_points) != clim_crs) {
               gridmet_points_trans <- sf::st_transform(gridmet_points, crs = clim_crs)
             } else {
               gridmet_points_trans <- gridmet_points
@@ -212,7 +212,7 @@ get_climate_future <- function(sf,
             
           } else if(exact == FALSE){
             # transform AOI to match raster CRS if needed
-            if(st_crs(aoi) != clim_crs) {
+            if(sf::st_crs(aoi) != clim_crs) {
               aoi_trans <- sf::st_transform(aoi, crs = clim_crs)
             } else {
               aoi_trans <- aoi
@@ -243,7 +243,7 @@ get_climate_future <- function(sf,
                           tmean_C = (tmax_C + tmin_C)/2,
                           join_index = aoi$join_index) %>%
             dplyr::select(-c("tasmax","tasmin","pr")) %>%
-            dplyr::mutate(RCP = str_replace(RCP, "historical", scenarios[j]))
+            dplyr::mutate(RCP = stringr::str_replace(RCP, "historical", scenarios[j]))
           
         } else {
           
@@ -287,7 +287,7 @@ get_climate_future <- function(sf,
       # ensure gridmet_points has coords & is POINT sf
       if (sf::st_crs(gridmet_points)$epsg != 4326){
         
-        gridmet_points <- st_transform(gridmet_points, 4326)
+        gridmet_points <- sf::st_transform(gridmet_points, 4326)
       }
       
       # for each row in `points`, find the index of its single nearest historical point
@@ -296,9 +296,9 @@ get_climate_future <- function(sf,
       # buffer by 800 m safely (transform to a meters-based CRS)
       points <- points %>%
         dplyr::mutate(rowid = nn_idx) %>%
-        left_join(st_drop_geometry(gridmet_points) %>% rowid_to_column() %>% dplyr::select(x, y, rowid),
+        dplyr::left_join(sf::st_drop_geometry(gridmet_points) %>% tibble::rowid_to_column() %>% dplyr::select(x, y, rowid),
                   by = "rowid") %>%
-        st_drop_geometry() %>%
+        sf::st_drop_geometry() %>%
         dplyr::select(-rowid)
       
       all_climate_data <- all_climate_data %>%
@@ -329,7 +329,7 @@ get_climate_future <- function(sf,
         
         print(paste0('Downloading MACA for ', aoi$join_index, "."))
         
-        if (year(as.Date(start)) <= 2005 & year(as.Date(end)) > 2005) {
+        if (lubridate::year(as.Date(start)) <= 2005 & lubridate::year(as.Date(end)) > 2005) {
           
           # 2005 marks the start of RCP forcings. If start and end date span
           # 2005-2006, need to pull in separately
@@ -339,9 +339,9 @@ get_climate_future <- function(sf,
                                         scenario = scenarios[j],
                                         startDate = start,
                                         endDate = "2005-12-31") %>%
-            rename_with(
+            dplyr::rename_with(
               .fn = ~ stringr::str_replace(., "historical", scenarios[j]),
-              .cols = contains("historical") 
+              .cols = dplyr::contains("historical") 
             )
           
           clim_post <- climateR::getMACA(AOI = aoi, 
@@ -352,7 +352,7 @@ get_climate_future <- function(sf,
                                          endDate = end) 
           
           clim <- clim_pre %>%
-            bind_rows(clim_post) 
+            dplyr::bind_rows(clim_post) 
           
         } else {
         

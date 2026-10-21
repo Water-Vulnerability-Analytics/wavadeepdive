@@ -15,10 +15,10 @@ getPODColorado <- function(aoi, dist = 0){
   
   call <- "https://dnrftp.state.co.us/CDSS/GIS/Structure.zip"  #download boundary
   temp1 <- tempfile()
-  download.file(paste0(call), destfile = temp1, method = "curl")
+  utils::download.file(paste0(call), destfile = temp1, method = "curl")
   
   temp2 <- tempfile()
-  unzip(temp1, exdir = temp2)
+  utils::unzip(temp1, exdir = temp2)
   
   # add buffer around park boundary
   aoi_buffer <- aoi %>%
@@ -26,7 +26,7 @@ getPODColorado <- function(aoi, dist = 0){
     sf::st_buffer(dist = dist)
   
   co_wr <- sf::st_read(dsn = temp2) %>%
-    st_make_valid() %>% 
+    sf::st_make_valid() %>% 
     sf::st_transform(4269)
   
   #join sf object and table attributes and filter to park boundary region of interest
@@ -37,7 +37,7 @@ getPODColorado <- function(aoi, dist = 0){
     dplyr::mutate(#park_right = ifelse(grepl("National Park", OWNER, ignore.case = T), "Park","Non-park"),
       within_park = ifelse(!is.na(within), "Within Park", NA)) %>%
     dplyr::select(-within) %>%
-    dplyr::filter(str_detect(CurrInUse, "(U)|(A)|(F)")) # Filter for active structures only
+    dplyr::filter(stringr::str_detect(CurrInUse, "(U)|(A)|(F)")) # Filter for active structures only
   
   if(nrow(nearby_wr) == 0){
     print("No PODs found within the user-supplied `aoi`")
@@ -57,7 +57,7 @@ getPODColorado <- function(aoi, dist = 0){
       #parse data in JSON
       dat_json <- jsonlite::fromJSON(dat_text, flatten = TRUE)
       
-      final_df <- as_tibble(dat_json)
+      final_df <- dplyr::as_tibble(dat_json)
     }
     
     return(final_df)
@@ -82,7 +82,7 @@ getPODColorado <- function(aoi, dist = 0){
       #parse data in JSON
       dat_json <- jsonlite::fromJSON(dat_text, flatten = TRUE)
       
-      final_df <- as_tibble(dat_json)
+      final_df <- dplyr::as_tibble(dat_json)
     }
     
     return(final_df)
@@ -94,8 +94,8 @@ getPODColorado <- function(aoi, dist = 0){
         .$ResultList %>%
         dplyr::distinct(.keep_all = TRUE), silent = TRUE)
   
-  try(final_wr <- left_join(nearby_wr, divs_api, by = c("WDID"= "wdid")) %>%
-        left_join(., wr_api,by = c("WDID"= "wdid")) %>%
+  try(final_wr <- dplyr::left_join(nearby_wr, divs_api, by = c("WDID"= "wdid")) %>%
+        dplyr::left_join(., wr_api,by = c("WDID"= "wdid")) %>%
         dplyr::rename(associatedCaseNumbers = associatedCaseNumbers.x,
                waterDistrict = waterDistrict.x, 
                structureType = structureType.x, 

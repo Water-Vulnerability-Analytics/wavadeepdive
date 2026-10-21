@@ -34,12 +34,12 @@ select_cfs_deep_dive <- function(df,
   
   # Read in all available gcms
   all_cfs <-
-    read_delim( "https://raw.githubusercontent.com/rossyndicate/CCRP_automated_climate_futures/master/data/general/GCM_skill_by_region.txt" ) %>%
+    readr::read_delim( "https://raw.githubusercontent.com/rossyndicate/CCRP_automated_climate_futures/master/data/general/GCM_skill_by_region.txt" ) %>%
     dplyr::filter(Region == region) %>% #,
     #Rank < 19) %>%
     dplyr::mutate(GCM = ifelse(GCM == "HadGEM2-ES.", "HadGEM2-ES365.", GCM),
                   GCM = ifelse(GCM == "HadGEM2-CC.", "HadGEM2-CC365.", GCM)) %>%
-    tidyr::crossing(data.table(RCP = c("rcp45","rcp85"))) %>%
+    tidyr::crossing(data.table::data.table(RCP = c("rcp45","rcp85"))) %>%
     dplyr::mutate(GCM = paste0(GCM,RCP)) %>% 
     dplyr::mutate(Skill = ifelse(Rank > 18, "Low Skill", "High Skill"))
   
@@ -49,11 +49,11 @@ select_cfs_deep_dive <- function(df,
     dplyr::filter(GCM %in% all_cfs[all_cfs$Skill == "High Skill",]$GCM)
   
   mean_x <- df[[x]] %>% mean()
-  q75_x <- df[[x]] %>% quantile(.75) %>% as.numeric()
-  q25_x <- df[[x]] %>% quantile(.25) %>% as.numeric()
+  q75_x <- df[[x]] %>% stats::quantile(.75) %>% as.numeric()
+  q25_x <- df[[x]] %>% stats::quantile(.25) %>% as.numeric()
   mean_y <- df[[y]] %>% mean()
-  q75_y <- df[[y]] %>% quantile(.75) %>% as.numeric()
-  q25_y <- df[[y]] %>% quantile(.25) %>% as.numeric()
+  q75_y <- df[[y]] %>% stats::quantile(.75) %>% as.numeric()
+  q25_y <- df[[y]] %>% stats::quantile(.25) %>% as.numeric()
   
   print(mean_y)
   print(mean_x)
@@ -67,13 +67,13 @@ select_cfs_deep_dive <- function(df,
   df <- df %>%
     dplyr::ungroup() %>%
     # designate climate future classification based on cf limits
-    mutate(
-      CF = case_when(
-        !!sym(x) < mean_x & !!sym(y) > q75_y | !!sym(x) < q25_x & !!sym(y) > mean_y ~ paste0(low_x, " ", high_y),
-        !!sym(x) > mean_x & !!sym(y) > q75_y | !!sym(x) > q75_x & !!sym(y) > mean_y ~ paste0(high_x, " ", high_y),
-        !!sym(x) > q25_x & !!sym(x) < q75_x & !!sym(y) > q25_y & !!sym(y) < q75_y ~ "Central",
-        !!sym(x) < mean_x & !!sym(y) < q25_y | !!sym(x) < q25_x & !!sym(y) < mean_y ~ paste0(low_x, " ", low_y),
-        !!sym(x) > mean_x & !!sym(y) < q25_y | !!sym(x) > q75_x & !!sym(y) < mean_y ~ paste0(high_x, " ", low_y)))
+    dplyr::mutate(
+      CF = dplyr::case_when(
+        !!dplyr::sym(x) < mean_x & !!dplyr::sym(y) > q75_y | !!dplyr::sym(x) < q25_x & !!dplyr::sym(y) > mean_y ~ paste0(low_x, " ", high_y),
+        !!dplyr::sym(x) > mean_x & !!dplyr::sym(y) > q75_y | !!dplyr::sym(x) > q75_x & !!dplyr::sym(y) > mean_y ~ paste0(high_x, " ", high_y),
+        !!dplyr::sym(x) > q25_x & !!dplyr::sym(x) < q75_x & !!dplyr::sym(y) > q25_y & !!dplyr::sym(y) < q75_y ~ "Central",
+        !!dplyr::sym(x) < mean_x & !!dplyr::sym(y) < q25_y | !!dplyr::sym(x) < q25_x & !!dplyr::sym(y) < mean_y ~ paste0(low_x, " ", low_y),
+        !!dplyr::sym(x) > mean_x & !!dplyr::sym(y) < q25_y | !!dplyr::sym(x) > q75_x & !!dplyr::sym(y) < mean_y ~ paste0(high_x, " ", low_y)))
   
   
   CFs_all <- c(paste0(low_x, " ", high_y), 
@@ -99,11 +99,11 @@ select_cfs_deep_dive <- function(df,
   
   corners <- df %>%
     # calculate euclidiean distance of each point/model from each corner
-    mutate(
-      lx_hy_dist = sqrt((!!sym(x) - lx_hy[1]) ^ 2 + (!!sym(y) - lx_hy[2]) ^ 2),
-      lx_ly_dist = sqrt((!!sym(x) - lx_ly[1]) ^ 2 + (!!sym(y) - lx_ly[2]) ^ 2),
-      hx_ly_dist = sqrt((!!sym(x) - hx_ly[1]) ^ 2 + (!!sym(y) - hx_ly[2]) ^ 2),
-      hx_hy_dist =  sqrt((!!sym(x) - hx_hy[1]) ^ 2 + (!!sym(y) - hx_hy[2]) ^ 2),
+    dplyr::mutate(
+      lx_hy_dist = sqrt((!!dplyr::sym(x) - lx_hy[1]) ^ 2 + (!!dplyr::sym(y) - lx_hy[2]) ^ 2),
+      lx_ly_dist = sqrt((!!dplyr::sym(x) - lx_ly[1]) ^ 2 + (!!dplyr::sym(y) - lx_ly[2]) ^ 2),
+      hx_ly_dist = sqrt((!!dplyr::sym(x) - hx_ly[1]) ^ 2 + (!!dplyr::sym(y) - hx_ly[2]) ^ 2),
+      hx_hy_dist =  sqrt((!!dplyr::sym(x) - hx_hy[1]) ^ 2 + (!!dplyr::sym(y) - hx_hy[2]) ^ 2),
       corners = CF
     ) %>%
     dplyr::filter(lx_hy_dist == min(lx_hy_dist) |
@@ -124,13 +124,13 @@ select_cfs_deep_dive <- function(df,
   future_pca_1 <- df %>% 
     dplyr::select(GCM, {{x}}, {{y}}) %>% 
     # set up for prcomp
-    column_to_rownames(var = 'GCM')
+    tibble::column_to_rownames(var = 'GCM')
   
   
-  pca_1 <- prcomp(future_pca_1, center = TRUE, scale. = TRUE) 
+  pca_1 <- stats::prcomp(future_pca_1, center = TRUE, scale. = TRUE) 
   
   # quick plot
-  autoplot(pca_1, data = future_pca_1, loadings = TRUE,label=TRUE)
+  ggplot2::autoplot(pca_1, data = future_pca_1, loadings = TRUE,label=TRUE)
   
   # get dataframe
   pca_1_df <- as.data.frame(pca_1$x)
@@ -138,11 +138,11 @@ select_cfs_deep_dive <- function(df,
   
   #Take the min/max of each of the PCs
   PCs <- pca_1_df %>% 
-    filter(PC1 == min(PC1) |
+    dplyr::filter(PC1 == min(PC1) |
              PC1 == max(PC1) |
              PC2 == min(PC2) |
              PC2 == max(PC2)) %>% 
-    rownames_to_column(var = "GCM")
+    tibble::rownames_to_column(var = "GCM")
   
   
   #Assigns CFs to diagonals
@@ -156,18 +156,18 @@ select_cfs_deep_dive <- function(df,
   PCA <-
     df %>% 
     dplyr::filter(GCM %in% PCs$GCM) %>% 
-    left_join(diagonals, by = "CF") %>% 
-    right_join(PCs, by = "GCM")
+    dplyr::left_join(diagonals, by = "CF") %>% 
+    dplyr::right_join(PCs, by = "GCM")
   
   # create column with selected pca models
   df <- df %>%
-    mutate(pca = if_else(GCM %in% PCs$GCM, CF, NA))
+    dplyr::mutate(pca = dplyr::if_else(GCM %in% PCs$GCM, CF, NA))
   
   #Handling missing and/or extra quadrats
   
   # function to deal with redundant quadrat
   ID.redundant.gcm <- function(PCA) {
-    redundant.diag <- count(PCA$diagonals)$x[which(count(PCA$diagonals)$freq == 1)] #ID redundant diagonal
+    redundant.diag <- dplyr::count(PCA$diagonals)$x[which(dplyr::count(PCA$diagonals)$freq == 1)] #ID redundant diagonal
     PC.foul = PCA$PC[which(PCA$diagonals == redundant.diag)] #ID which PC has the redundant diagonal
     PCA$GCM[which(PCA$PC == PC.foul &
                     PCA$GCM != PCA$GCM[which(PCA$diagonals == redundant.diag)])] #ID GCM that is in both the  redundant diagonal and the duplicative PC
@@ -193,8 +193,8 @@ select_cfs_deep_dive <- function(df,
   
   # return selected methods based on method identified in parameters
   selected_gcms <- df %>% 
-    drop_na("pca") %>% 
-    dplyr::select(GCM, CF, !!sym(x), !!sym(y))
+    tidyr::drop_na("pca") %>% 
+    dplyr::select(GCM, CF, !!dplyr::sym(x), !!dplyr::sym(y))
   
   #Presentation Figure:
   
@@ -203,52 +203,52 @@ select_cfs_deep_dive <- function(df,
   if (to_plot == TRUE) {
     
     if (fill_var == "CF") {
-      fill_asth <- scale_fill_manual(values = c("gray", "darkred", "darkblue", "pink", "lightblue"))
-      guide_asth <- guides(fill = guide_legend(title = fill_var_name, 
+      fill_asth <- ggplot2::scale_fill_manual(values = c("gray", "darkred", "darkblue", "pink", "lightblue"))
+      guide_asth <- ggplot2::guides(fill = ggplot2::guide_legend(title = fill_var_name, 
                                                override.aes = list(shape = 21, size = 5, color = "black")),
-                           shape = guide_legend(override.aes = list(fill = "black"))) 
+                           shape = ggplot2::guide_legend(override.aes = list(fill = "black"))) 
     } else {
-      fill_asth <- scale_fill_gradient(fill_var_name, guide = "colorbar", high = "red", low = "yellow")
-      guide_asth <- guides(fill = "colorbar")
+      fill_asth <- ggplot2::scale_fill_gradient(fill_var_name, guide = "colorbar", high = "red", low = "yellow")
+      guide_asth <- ggplot2::guides(fill = "colorbar")
     }
     
-    p <- ggplot(df, aes(!!sym(x), !!sym(y), xmin = q25_x, xmax = q75_x, 
+    p <- ggplot2::ggplot(df, ggplot2::aes(!!dplyr::sym(x), !!dplyr::sym(y), xmin = q25_x, xmax = q75_x, 
                         ymin = q25_y, ymax = q75_y) ) + 
-      geom_point(aes(shape = RCP, fill = !!sym(fill_var)), size = 4, stroke = 1) +
+      ggplot2::geom_point(ggplot2::aes(shape = RCP, fill = !!dplyr::sym(fill_var)), size = 4, stroke = 1) +
       #PlotTheme +
-      labs(
+      ggplot2::labs(
         title = paste(park, " Changes in climate means in", 2050 , "by GCM run"),
         x =paste0("Change in ", x_name),
         y = paste0("Change in ", y_name)
       ) +
       fill_asth +
-      scale_shape_manual(values = c(21, 24)) +
+      ggplot2::scale_shape_manual(values = c(21, 24)) +
       guide_asth +
       
       #geom_point(colour="black",size=4) +
-      theme(
-        axis.text = element_text(size = 16),
-        axis.title.x = element_text(size = 16, vjust = -0.2),
-        axis.title.y = element_text(size = 16, vjust = 0.2),
-        plot.title = element_text(
+      ggplot2::theme(
+        axis.text = ggplot2::element_text(size = 16),
+        axis.title.x = ggplot2::element_text(size = 16, vjust = -0.2),
+        axis.title.y = ggplot2::element_text(size = 16, vjust = 0.2),
+        plot.title = ggplot2::element_text(
           size = 20,
           face = "bold",
           vjust = 2,
           hjust = 0.5
         ),
-        legend.text = element_text(size = 16),
-        legend.title = element_text(size = 16),
-        legend.key = element_blank() 
+        legend.text = ggplot2::element_text(size = 16),
+        legend.title = ggplot2::element_text(size = 16),
+        legend.key = ggplot2::element_blank() 
       ) +
-      geom_rect(color = "black", alpha = 0) +
-      geom_hline(aes(yintercept = mean_y), linetype = 2) +
-      geom_vline(aes(xintercept = mean_x), linetype = 2) +
-      geom_mark_circle(data = filter(df, GCM %in% selected_gcms$GCM),
-                       aes(group = GCM), expand = 0.025, size = 1, linetype = 2) + 
+      ggplot2::geom_rect(color = "black", alpha = 0) +
+      ggplot2::geom_hline(ggplot2::aes(yintercept = mean_y), linetype = 2) +
+      ggplot2::geom_vline(ggplot2::aes(xintercept = mean_x), linetype = 2) +
+      ggforce::geom_mark_circle(data = dplyr::filter(df, GCM %in% selected_gcms$GCM),
+                       ggplot2::aes(group = GCM), expand = 0.025, size = 1, linetype = 2) + 
       {if (!is.null(highlight)) 
-        geom_mark_circle(data = filter(df, GCM %in% selected_gcms$GCM[selected_gcms$CF %in% highlight]),
-                         aes(group = GCM), expand = 0.04, size = 1.5, color = "gold2")} +
-      geom_text_repel(aes(label = GCM))
+        ggforce::geom_mark_circle(data = dplyr::filter(df, GCM %in% selected_gcms$GCM[selected_gcms$CF %in% highlight]),
+                         ggplot2::aes(group = GCM), expand = 0.04, size = 1.5, color = "gold2")} +
+      ggrepel::geom_text_repel(ggplot2::aes(label = GCM))
     
     return(list(selected_gcms, p))
     

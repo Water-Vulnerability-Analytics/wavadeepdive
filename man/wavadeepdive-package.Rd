@@ -27,5 +27,10 @@ Authors:
   \item Kristen Cognac \email{Kristen.Cognac@colostate.edu}
 }
 
+Other contributors:
+\itemize{
+  \item ROSS - Radical Open Science Syndicate and all contributors [copyright holder]
+}
+
 }
 \keyword{internal}

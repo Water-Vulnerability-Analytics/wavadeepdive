@@ -30,14 +30,14 @@ get_surficial_geology <- function(aoi) {
   }
   
   # Ensure we have a valid CRS to transform from
-  if (is.na(st_crs(aoi))) {
+  if (is.na(sf::st_crs(aoi))) {
     stop("Input 'aoi' has no CRS defined. Please set the CRS using st_set_crs().")
   }
   
   # --- 2. Prepare Spatial Filter ---
   # Transform to WGS84 (EPSG:4326) as it's the most reliable for REST queries
-  aoi_4326 <- st_transform(aoi, crs = 4326)
-  bb <- st_bbox(aoi_4326)
+  aoi_4326 <- sf::st_transform(aoi, crs = 4326)
+  bb <- sf::st_bbox(aoi_4326)
   
   # Format bounding box for ArcGIS URL: xmin, ymin, xmax, ymax
   bbox_text <- paste(
@@ -69,7 +69,7 @@ get_surficial_geology <- function(aoi) {
   query_url <- paste0(map_server_url, "/", 6, "/query?", param_string)
   
   # --- 4. Read map units
-  map_units_dat <- st_read(map_units_url, quiet = TRUE)
+  map_units_dat <- sf::st_read(map_units_url, quiet = TRUE)
   
   # --- 4. Execute Request with Error Handling ---
   return_dat <- NULL 
@@ -78,7 +78,7 @@ get_surficial_geology <- function(aoi) {
     message("Requesting filtered data from USGS/ArcGIS Service...")
     
     # Use st_read to fetch GeoJSON
-    return_dat <- st_read(query_url, quiet = TRUE)
+    return_dat <- sf::st_read(query_url, quiet = TRUE)
     
     # --- 5. Post-Download Checks ---
     if (nrow(return_dat) == 0) {
@@ -89,8 +89,8 @@ get_surficial_geology <- function(aoi) {
       
       # Join unit info
       return_dat <- return_dat %>%
-        left_join(map_units_dat %>% st_drop_geometry() %>%
-                    select(-c(OBJECTID, Symbol, Label)), 
+        dplyr::left_join(map_units_dat %>% sf::st_drop_geometry() %>%
+                    dplyr::select(-c(OBJECTID, Symbol, Label)), 
                   by = "MapUnit")
       
       # Check if we likely hit the server's Transfer Limit (usually 1k or 2k)

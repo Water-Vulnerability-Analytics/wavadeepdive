@@ -18,12 +18,12 @@ getSNOTEL <- function(aoi,
                       path = NULL) {
     
     # 1. Buffer and Transform AOI 
-    aoi_buf <- st_buffer(aoi, dist = dist)
-    aoi_wgs84 <- st_transform(aoi_buf, 4326)
+    aoi_buf <- sf::st_buffer(aoi, dist = dist)
+    aoi_wgs84 <- sf::st_transform(aoi_buf, 4326)
     
     # 2. Filter sites quickly using WGS84
-    data('SCAN_SNOTEL_metadata', package = 'soilDB')
-    sites <- st_as_sf(SCAN_SNOTEL_metadata, coords = c("Longitude", "Latitude"), crs = 4326)
+    utils::data('SCAN_SNOTEL_metadata', package = 'soilDB')
+    sites <- sf::st_as_sf(SCAN_SNOTEL_metadata, coords = c("Longitude", "Latitude"), crs = 4326)
     
     site_aoi <- sites[aoi_wgs84, ] # Spatial Subset
     
@@ -54,9 +54,9 @@ getSNOTEL <- function(aoi,
     
     # 5. Clean up efficiently
     final_data <- all_dat_list[names(all_dat_list) != "metadata"] %>%
-      purrr::map(~ mutate(.x, across(everything(), as.character))) %>%
-      bind_rows() %>%
-      left_join(metadata, by = "Site")
+      purrr::map(~ dplyr::mutate(.x, dplyr::across(dplyr::everything(), as.character))) %>%
+      dplyr::bind_rows() %>%
+      dplyr::left_join(metadata, by = "Site")
     
     return(final_data)
 }

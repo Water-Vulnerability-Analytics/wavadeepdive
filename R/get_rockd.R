@@ -10,7 +10,7 @@ get_rockd <- function(points){
   #https://macrostrat.org/api/v2/geologic_units/map?lat=38.7806&lng=-109.5936&adjacents=true&format=geojson_bare
   # Transform points to 4326 if not already 4326, then 
   # grab the coordinates for later steps:
-  if(st_crs(points)$epsg != 4326) {
+  if(sf::st_crs(points)$epsg != 4326) {
     aoi <- points %>%
       sf::st_transform(4326) %>%
       sf::st_coordinates() %>%
@@ -36,10 +36,10 @@ get_rockd <- function(points){
                               aoi$X[i],
                               "&adjacents=true&format=geojson_bare"),#geologic_units/map?strat_name_id=2683&format=geojson_bare",
                        .opts = RCurl::curlOptions(ssl.verifypeer=FALSE, verbose=FALSE)) %>%
-      str_replace_all(., "\u000B", "")
+      stringr::str_replace_all(., "\u000B", "")
     
     # If not an empty object, then extract geojson
-    if(fromJSON(y)$features %>% length() > 0) {
+    if(jsonlite::fromJSON(y)$features %>% length() > 0) {
       sf_temp[[i]] <- geojsonsf::geojson_wkt(y) %>%
         dplyr::mutate(aoi$rowid[i])
     }
