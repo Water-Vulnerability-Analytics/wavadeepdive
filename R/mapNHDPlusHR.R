@@ -7,17 +7,17 @@ mapNHDPlusHR <- function(aoi){
   
   for(i in 1:nrow(hucs)){
     
-    nhdhr <- paste0(wava_data_path("all", "nhdplushr"), "/", str_sub(hucs$huc4[i], 1, 2), "/")
+    nhdhr <- paste0(wavacore::wava_data_path("all", "nhdplushr"), "/", stringr::str_sub(hucs$huc4[i], 1, 2), "/")
     
     file <- list.files(nhdhr, pattern = paste0(hucs$huc4[i], "_HU4_GDB.gdb"), full.names = TRUE)
     
     # filter out and clip the catchment features within the park boundaries:
     flowlines[[i]] <- sf::st_read(dsn = file, layer = "NHDFlowline") %>%
-      st_zm()
+      sf::st_zm()
     
-    if(st_crs(aoi)$epsg != 4269){
+    if(sf::st_crs(aoi)$epsg != 4269){
       flowlines[[i]] <- flowlines[[i]] %>%
-        .[st_transform(aoi, 4269),]
+        .[sf::st_transform(aoi, 4269),]
     } else {
       
       flowlines[[i]] <- flowlines[[i]] %>%
@@ -26,7 +26,7 @@ mapNHDPlusHR <- function(aoi){
     
   }
   
-  flowlines<- bind_rows(flowlines) %>%
+  flowlines<- dplyr::bind_rows(flowlines) %>%
     
     
     return(flowlines)

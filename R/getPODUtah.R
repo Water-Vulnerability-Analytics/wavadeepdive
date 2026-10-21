@@ -39,8 +39,8 @@ getPODUtah <- function(aoi, dist = 0){
                 filter_geom,
                 "&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects")
   
-  ut_wr <- st_read(url) %>%
-    sf::st_transform(st_crs(aoi))
+  ut_wr <- sf::st_read(url) %>%
+    sf::st_transform(sf::st_crs(aoi))
   
   #join sf object and table attributes and filter to park boundary region of interest
   nearby_wr <- ut_wr %>%    

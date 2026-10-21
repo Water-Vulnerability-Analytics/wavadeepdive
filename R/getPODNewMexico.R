@@ -12,7 +12,7 @@ getPODNewMexico <- function(aoi, dist = 0){
   aoi_buffer <- aoi %>% 
     sf::st_buffer(dist = dist)
   
-  if(st_crs(aoi_buffer)$epsg != 4326){
+  if(sf::st_crs(aoi_buffer)$epsg != 4326){
   
   ## convert park boundary bbox to esri geom object
   filter_geom <- aoi_buffer %>%
@@ -38,14 +38,14 @@ getPODNewMexico <- function(aoi, dist = 0){
                 filter_geom,
                 "&geometryType=esriGeometryPolygon&inSR=4326&spatialRel=esriSpatialRelIntersects")
   
-  if(st_crs(aoi_buffer)$epsg != 4326){
+  if(sf::st_crs(aoi_buffer)$epsg != 4326){
   
-  nm_wr <- st_read(url) %>%
-    sf::st_transform(st_crs(aoi))
+  nm_wr <- sf::st_read(url) %>%
+    sf::st_transform(sf::st_crs(aoi))
   
   } else {
     
-    nm_wr <- st_read(url) 
+    nm_wr <- sf::st_read(url) 
     
   }
   

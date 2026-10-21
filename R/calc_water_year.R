@@ -8,11 +8,11 @@
 #' @export
 calc_water_year <- function(dates, water_year_start_month = 10) {
   # Ensure the input is treated as a date (lubridate functions handle various formats)
-  dates <- as_date(dates)
+  dates <- lubridate::as_date(dates)
   
   # Extract calendar year and month
-  calendar_year <- year(dates)
-  month_of_year <- month(dates)
+  calendar_year <- lubridate::year(dates)
+  month_of_year <- lubridate::month(dates)
   
   # Apply the water year logic:
   # If the month is October (10) or later, the water year is the next calendar year.

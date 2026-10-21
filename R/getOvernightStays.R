@@ -15,10 +15,10 @@ getOvernightStays <- function(parks){
                   "NonRecreationVisits", "RecreationVisits",
                   "RVCampers", "TentCampers")
   
-  all_parks <- list.files(wava_data_path("all", "nps_visitor_use_data/"), full.names = TRUE) %>%
-    purrr::map(~data.table::fread(.) %>% mutate(across(everything(), as.character))) %>%
+  all_parks <- list.files(wavacore::wava_data_path("all", "nps_visitor_use_data/"), full.names = TRUE) %>%
+    purrr::map(~data.table::fread(.) %>% dplyr::mutate(dplyr::across(dplyr::everything(), as.character))) %>%
     dplyr::bind_rows() %>%
-    mutate(UnitCode = case_when(UnitCode == "JOFK" ~ "JOFI",
+    dplyr::mutate(UnitCode = dplyr::case_when(UnitCode == "JOFK" ~ "JOFI",
                                 UnitCode == "KLSE" ~ "KLGO",
                                 UnitCode == "MAMC" ~ "MABE", 
                                 UnitCode == "NCPC" ~ "NACA",
@@ -30,22 +30,22 @@ getOvernightStays <- function(parks){
   
   park_select <- all_parks %>%
     dplyr::filter(UnitCode %in% parks) %>%
-    select(UnitCode, Month, Year, Backcountry, ConcessionerCamping, ConcessionerLodging,
+    dplyr::select(UnitCode, Month, Year, Backcountry, ConcessionerCamping, ConcessionerLodging,
            MiscellaneousOvernightStays, NonRecreationOvernightStays, NonRecreationVisits, RecreationVisits, RVCampers, TentCampers) %>%
-    mutate(ym = lubridate::ym(paste0(Year, "-", Month))) %>%
-    pivot_longer(cols = any_of(visit_vars), names_to = "var", values_to = "visits") %>%
-    mutate(visits = as.numeric(gsub(",|-", "", visits))) %>%
-    distinct()
+    dplyr::mutate(ym = lubridate::ym(paste0(Year, "-", Month))) %>%
+    tidyr::pivot_longer(cols = dplyr::any_of(visit_vars), names_to = "var", values_to = "visits") %>%
+    dplyr::mutate(visits = as.numeric(gsub(",|-", "", visits))) %>%
+    dplyr::distinct()
   
-  park_select_wide <- park_select %>% pivot_wider(names_from = var, values_from = visits, values_fn = mean) %>%
-    mutate(RecreationDayUse = RecreationVisits - ConcessionerLodging - ConcessionerCamping - TentCampers - RVCampers - Backcountry - MiscellaneousOvernightStays,
+  park_select_wide <- park_select %>% tidyr::pivot_wider(names_from = var, values_from = visits, values_fn = mean) %>%
+    dplyr::mutate(RecreationDayUse = RecreationVisits - ConcessionerLodging - ConcessionerCamping - TentCampers - RVCampers - Backcountry - MiscellaneousOvernightStays,
            NonRecreationDayUse = NonRecreationVisits - NonRecreationOvernightStays,
            RecreationOvernightUse = ConcessionerLodging + ConcessionerCamping + TentCampers + RVCampers + Backcountry + MiscellaneousOvernightStays,
            NonRecreationOvernightUse = NonRecreationOvernightStays,
            TotalDayUse = NonRecreationDayUse + RecreationDayUse,
            TotalOvernightUse = NonRecreationOvernightUse + RecreationOvernightUse,
            TotalPeople = RecreationDayUse + RecreationOvernightUse + NonRecreationDayUse + NonRecreationOvernightUse) %>%
-    select(-c(Month, Year, NonRecreationOvernightStays)) 
+    dplyr::select(-c(Month, Year, NonRecreationOvernightStays)) 
   
   return(park_select_wide)
   

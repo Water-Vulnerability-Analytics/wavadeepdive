@@ -13,12 +13,12 @@ getPODNevada <- function(aoi, dist=0){
     sf::st_buffer(dist = dist) 
   
   #read in POD attribute table
-  table <- read_csv(wava_data_path("all", "Water_Rights_Points_of_Diversion.csv"))
+  table <- readr::read_csv(wavacore::wava_data_path("all", "Water_Rights_Points_of_Diversion.csv"))
   
   #read in spatial points of diversion
-  nv_wr <- sf::st_read(wava_data_path("all", "POD_Permits_All.shp")) %>%
+  nv_wr <- sf::st_read(wavacore::wava_data_path("all", "POD_Permits_All.shp")) %>%
     sf::st_drop_geometry() %>%
-    inner_join(.,table, by="app") %>%
+    dplyr::inner_join(.,table, by="app") %>%
     sf::st_as_sf(.,coords=c("longitude","latitude"), crs = 4269) %>%
     sf::st_transform(crs=4269) %>%
     sf::st_intersection(., aoi_buffer) %>%

@@ -26,13 +26,13 @@ getWaterRightsMontana <- function(aoi, dist = 0){
   
   call <- "https://ftpgeoinfo.msl.mt.gov/Data/Spatial/NonMSDI/DNRC_WR/MTWaterRights.gdb.zip"
   temp1 <- tempfile()
-  download.file(paste0(call), destfile = temp1, method = "curl")
+  utils::download.file(paste0(call), destfile = temp1, method = "curl")
   temp2 <- tempfile()
-  unzip(temp1, exdir = temp2)
+  utils::unzip(temp1, exdir = temp2)
  
-  POD <- st_read(list.files(temp2, full.names = TRUE), layer = "WRDIV")
-  POU <- st_read(list.files(temp2, full.names = TRUE), layer = "WRPOU")
-  RES <- st_read(list.files(temp2, full.names = TRUE), layer = "WRRES")
+  POD <- sf::st_read(list.files(temp2, full.names = TRUE), layer = "WRDIV")
+  POU <- sf::st_read(list.files(temp2, full.names = TRUE), layer = "WRPOU")
+  RES <- sf::st_read(list.files(temp2, full.names = TRUE), layer = "WRRES")
   
   # These are layers containing the historic data (i.e., if any rights were
   # moved around or modififed, this layer shows the original owner, etc.)
@@ -42,7 +42,7 @@ getWaterRightsMontana <- function(aoi, dist = 0){
   
 
   aoi <- aoi  %>%
-    st_transform(crs(POD))
+    sf::st_transform(terra::crs(POD))
   
   # add buffer around park boundary
   aoi_buffer <- aoi %>% 

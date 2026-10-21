@@ -39,16 +39,16 @@ if (nrow(nwis_groundwater) > 35000) {
                    ceiling(seq_len(nrow(nwis_groundwater)) / 35000))
 
   # Process each chunk and combine results
-  nwis_groundwater_meta <- map_dfr(df_list, get_well_meta)
+  nwis_groundwater_meta <- purrr::map_dfr(df_list, get_well_meta)
   
 } else {
   nwis_groundwater_meta <- get_well_meta(gw_list = nwis_groundwater)
 }
  
 # Next get aquifer metadata 
-aquifer_table <- read_waterdata_metadata("aquifer-codes")
-national_table <- read_waterdata_metadata("national-aquifer-codes")
-aquifer_types <- read_waterdata_metadata("aquifer-types")
+aquifer_table <- dataRetrieval::read_waterdata_metadata("aquifer-codes")
+national_table <- dataRetrieval::read_waterdata_metadata("national-aquifer-codes")
+aquifer_types <- dataRetrieval::read_waterdata_metadata("aquifer-types")
 #hucs <- read_waterdata_metadata("hydrologic-unit-codes")
 
 nwis_groundwater_meta <- nwis_groundwater_meta %>%

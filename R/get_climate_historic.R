@@ -113,7 +113,7 @@ get_climate_historic <- function(sf,
                           tmean_C = (tmax_C + tmin_C)/2,
                           join_index = aoi$join_index) %>%
             dplyr::rename(area_weight = weight) %>%
-            dplyr::select(-any_of(c("ID", "tmmx", "tmmn", "pr")))
+            dplyr::select(-dplyr::any_of(c("ID", "tmmx", "tmmn", "pr")))
           
         } else {
           # Standard Crop/Mask
@@ -133,7 +133,7 @@ get_climate_historic <- function(sf,
                           tmean_C = (tmax_C + tmin_C)/2,
                           join_index = aoi$join_index,
                           area_weight = NA) %>%
-            dplyr::select(-any_of(c("tmmx", "tmmn", "pr")))
+            dplyr::select(-dplyr::any_of(c("tmmx", "tmmn", "pr")))
         }
       }
     }
@@ -168,7 +168,7 @@ get_climate_historic <- function(sf,
                       tmean_C = (tmax_C + tmin_C)/2,
                       join_index = aoi$join_index,
                       area_weight = NA) %>%
-        dplyr::select(-any_of(c("tmmx", "tmmn", "pr")))
+        dplyr::select(-dplyr::any_of(c("tmmx", "tmmn", "pr")))
     }
     
   } else {

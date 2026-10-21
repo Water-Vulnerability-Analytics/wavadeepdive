@@ -30,7 +30,7 @@ listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
   #   dplyr::select(site_type_cd = 1,
   #                 site_type = 2)
   
-  table <- read_waterdata_metadata("site-types") %>%
+  table <- dataRetrieval::read_waterdata_metadata("site-types") %>%
     dplyr::select(site_type_cd = 1,
                   site_type = 3)
   
@@ -57,9 +57,9 @@ listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
     gage_sites <- dplyr::bind_rows(gage_sites) %>%
       sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269)
     
-    if(st_crs(aoi) != st_crs(gage_sites)){
+    if(sf::st_crs(aoi) != sf::st_crs(gage_sites)){
       
-      gage_sites <- st_transform(gage_sites, st_crs(aoi))
+      gage_sites <- sf::st_transform(gage_sites, sf::st_crs(aoi))
       
     }
     
@@ -103,7 +103,7 @@ listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
     }
     
     # Map over the chunks to retrieve and process NWIS data
-    gage_sites <- map_dfr(site_chunks, function(chunk) {
+    gage_sites <- purrr::map_dfr(site_chunks, function(chunk) {
       dataRetrieval::whatNWISdata(siteNumber = chunk) %>%
         sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269) %>%
         dplyr::left_join(pcodes, by = "parm_cd") %>%
@@ -134,7 +134,7 @@ listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
     # Grab NWIS sites by state code: 
   } else if(!is.null(states)){
     
-    sites <- whatNWISsites(stateCd = states) %>% .$site_no
+    sites <- dataRetrieval::whatNWISsites(stateCd = states) %>% .$site_no
     
     # Check and split 'sites' into chunks if necessary
     site_chunks <- if (length(sites) > 35000) {
@@ -144,7 +144,7 @@ listNWIS <- function(aoi = NULL, dist, states = NULL, sites = NULL){
     }
     
     # Map over the chunks to retrieve and process NWIS data
-    gage_sites <- map_dfr(site_chunks, function(chunk) {
+    gage_sites <- purrr::map_dfr(site_chunks, function(chunk) {
       dataRetrieval::whatNWISdata(siteNumber = chunk) %>%
         sf::st_as_sf(coords = c('dec_long_va', 'dec_lat_va'), crs = 4269) %>%
         dplyr::left_join(pcodes, by = "parm_cd") %>%

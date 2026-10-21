@@ -1,42 +1,17 @@
 #' @keywords internal
 "_PACKAGE"
 
-## Functions from other packages that the code calls without a `pkg::` prefix.
-## The playground got these from `library()` calls in setup.R.
-#' @importFrom data.table data.table
-#' @importFrom dataRetrieval read_waterdata_metadata whatNWISsites
-#' @importFrom dplyr any_of as_tibble bind_rows case_when contains count
-#' @importFrom dplyr distinct filter if_else inner_join left_join mutate
-#' @importFrom dplyr rename_with right_join row_number select sym
+## Functions from other packages are called as `pkg::fun()`. The only imports
+## are `%>%` (operators can't be called with `::`, see utils-pipe.R) and the
+## ggfortify one below.
+
 ## ggfortify provides the autoplot() method for PCA objects; importing any of
 ## its functions loads it.
 #' @importFrom ggfortify ggbiplot
-#' @importFrom ggforce geom_mark_circle
-#' @importFrom ggplot2 autoplot aes element_blank element_text geom_hline
-#' @importFrom ggplot2 geom_point geom_rect geom_vline ggplot guide_legend
-#' @importFrom ggplot2 guides labs scale_fill_gradient scale_fill_manual
-#' @importFrom ggplot2 scale_shape_manual theme
-#' @importFrom ggrepel geom_text_repel
-#' @importFrom jsonlite fromJSON
-#' @importFrom lubridate as_date month year
-#' @importFrom nhdplusTools get_nhdplus get_raindrop_trace get_split_catchment
-#' @importFrom purrr map_dfr
-#' @importFrom readr read_csv read_delim
-#' @importFrom sf sf_use_s2 st_area st_as_sf st_as_sfc st_bbox st_boundary
-#' @importFrom sf st_buffer st_cast st_crop st_crs st_difference
-#' @importFrom sf st_drop_geometry st_intersects st_make_grid st_make_valid
-#' @importFrom sf st_nearest_points st_read st_transform st_zm
-#' @importFrom stats prcomp quantile
-#' @importFrom stringr str_detect str_extract str_replace
-#' @importFrom stringr str_replace_all str_sub word
-#' @importFrom terra crs
-#' @importFrom tibble column_to_rownames rowid_to_column rownames_to_column
-#' @importFrom tidyr drop_na pivot_longer pivot_wider
-#' @importFrom tigris states
-#' @importFrom units set_units
-#' @importFrom utils data download.file setTxtProgressBar txtProgressBar unzip
-#' @importFrom wavacore wava_data_path
 NULL
+
+## Lets data.table syntax (`dt[, x := ...]`) work without importing data.table.
+.datatable.aware <- TRUE
 
 ## Column names used inside dplyr and data.table calls.
 utils::globalVariables(c(
